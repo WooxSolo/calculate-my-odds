@@ -17,6 +17,6 @@ module.exports = env => merge(common(env), {
         })
     ],
     output: {
-        filename: "[name].js"
+        filename: "[name]-[contenthash].js"
     }
 });

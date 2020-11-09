@@ -8,6 +8,12 @@ module.exports = env => ({
     module: {
         rules: [
             {
+                test: /\.worker\.ts$/,
+                use: {
+                    loader: 'worker-loader',
+                },
+            },
+            {
                 test: /\.tsx?$/i,
                 use: "ts-loader",
                 exclude: /node_modules/
