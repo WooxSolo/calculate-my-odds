@@ -1,0 +1,27 @@
+
+.probability-goal-input-component {
+    display: flex;
+    width: 100%;
+    margin-left: -0.3em;
+    margin-right: -0.3em;
+    
+    .goal-probability-item {
+        flex-grow: 1;
+    }
+    
+    .goal-comparison-operator {
+        width: 5em;
+    }
+    
+    .goal-target-container {
+        flex-grow: 1;
+    }
+    
+    .goal-button-container {
+        
+    }
+    
+    > * {
+        padding: 0.3em;
+    }
+}

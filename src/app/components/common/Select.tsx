@@ -36,6 +36,29 @@ export class Select<T> extends React.PureComponent<Props<T>, State> {
                     }
                     return value.toString();
                 }}
+                styles={{
+                    valueContainer: (base, props) => ({
+                        ...base,
+                        padding: 0,
+                    }),
+                    control: (base, props) => ({
+                        ...base,
+                        padding: "0 0.2em",
+                        height: "2.2em",
+                        minHeight: undefined
+                    }),
+                    menuList: (base, props) => ({
+                        ...base,
+                    }),
+                    option: (base, props) => ({
+                        ...base,
+                        padding: "0.3em 0.5em"
+                    }),
+                    dropdownIndicator: (base, props) => ({
+                        ...base,
+                        padding: 0
+                    })
+                }}
             />
         );
     }

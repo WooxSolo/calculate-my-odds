@@ -1,3 +1,4 @@
+import "./ProbabilityInput.scss";
 import React from "react";
 import { ProbabilityItem } from "../../../shared/interfaces/Probability";
 import { parseProbability } from "../../helper/ProbabilityHelper";
@@ -24,28 +25,34 @@ export class ProbabilityInput extends React.PureComponent<Props, State> {
     
     render() {
         return (
-            <div>
-                <input
-                    type="text"
-                    value={this.props.item.name}
-                    onChange={e => this.props.onChange({
-                        ...this.props.item,
-                        name: e.target.value
-                    })}
-                />
-                <input
-                    type="text"
-                    value={this.props.item.probabilityDisplay}
-                    onChange={e => this.props.onChange({
-                        ...this.props.item,
-                        probabilityDisplay: e.target.value,
-                        probability: parseProbability(e.target.value)
-                    })}
-                />
-                <Button
-                    content="Remove"
-                    onClick={this.props.onDeleteRequest}
-                />
+            <div className="probability-input-component">
+                <div className="probability-name">
+                    <input
+                        type="text"
+                        value={this.props.item.name}
+                        onChange={e => this.props.onChange({
+                            ...this.props.item,
+                            name: e.target.value
+                        })}
+                    />
+                </div>
+                <div className="probability-chance">
+                    <input
+                        type="text"
+                        value={this.props.item.probabilityDisplay}
+                        onChange={e => this.props.onChange({
+                            ...this.props.item,
+                            probabilityDisplay: e.target.value,
+                            probability: parseProbability(e.target.value)
+                        })}
+                    />
+                </div>
+                <div className="probability-remove">
+                    <Button
+                        content="Remove"
+                        onClick={this.props.onDeleteRequest}
+                    />
+                </div>
             </div>
         );
     }

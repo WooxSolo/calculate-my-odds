@@ -1,0 +1,22 @@
+
+.probability-input-component {
+    margin-left: -0.3em;
+    margin-right: -0.3em;
+    display: flex;
+    
+    .probability-name {
+        flex-grow: 1;
+    }
+    
+    .probability-chance {
+        flex-grow: 1;
+    }
+    
+    .probability-remove {
+        
+    }
+    
+    > * {
+        padding: 0.3em;
+    }
+}

@@ -1,6 +1,7 @@
 import React from "react";
 
 interface Props {
+    className?: string,
     content: React.ReactNode,
     onClick?: () => void
 }
@@ -20,7 +21,7 @@ export class Button extends React.PureComponent<Props, State> {
     
     render() {
         return (
-            <button className="btn" onClick={this.props.onClick}>
+            <button className={`btn ${this.props.className ?? ""}`} onClick={this.props.onClick}>
                 {this.props.content}
             </button>
         );
