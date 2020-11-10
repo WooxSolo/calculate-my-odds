@@ -5,7 +5,7 @@ export interface ProbabilityGoal {
     type: "PROBABILITY_GOAL",
     id: string,
     item?: ProbabilityItem,
-    comparator?: ComparisonOperator,
+    comparator: ComparisonOperator,
     targetCount?: number
 }
 

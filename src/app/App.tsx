@@ -2,7 +2,7 @@ import "./App.scss";
 import React from "react";
 import { ProbabilityInputContainer } from "./components/ProbabilityInputContainer";
 import { GoalInputContainer } from "./components/GoalInputContainer";
-import { ResultDisplay } from "./components/ResultDisplayInput";
+import { ResultDisplayContainer } from "./components/ResultDisplayContainer";
 import { ProbabilityItem } from "../shared/interfaces/Probability";
 import { AnyProbabilityGoal } from "../shared/interfaces/Goals";
 
@@ -39,7 +39,7 @@ export class App extends React.PureComponent<Props, State> {
                         goals: goals
                     })}
                 />
-                <ResultDisplay
+                <ResultDisplayContainer
                     probabilities={this.state.probabilities}
                     goals={this.state.goals}
                 />

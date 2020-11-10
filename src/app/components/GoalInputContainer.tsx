@@ -1,6 +1,7 @@
 import React from "react";
 import { AnyProbabilityGoal, ProbabilityGoal } from "../../shared/interfaces/Goals";
 import { ProbabilityItem } from "../../shared/interfaces/Probability";
+import { comparisonOperators } from "../helper/ComparatorOperators";
 import { nextUniqueId } from "../helper/IdHelpers";
 import { Button } from "./common/Button";
 import { ProbabilityGoalInput } from "./inputs/ProbabilityGoalInput";
@@ -27,6 +28,7 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
         const newGoal: ProbabilityGoal = {
             type: "PROBABILITY_GOAL",
             id: nextUniqueId().toString(),
+            comparator: comparisonOperators.find(x => x.name === ">=")!
         };
         const newGoals = [...this.state.goals, newGoal];
         

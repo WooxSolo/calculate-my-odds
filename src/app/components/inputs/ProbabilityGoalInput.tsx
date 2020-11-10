@@ -51,7 +51,7 @@ export class ProbabilityGoalInput extends React.PureComponent<Props, State> {
                         value={this.props.goal.comparator}
                         onChange={x => this.props.onChange({
                             ...this.props.goal,
-                            comparator: x
+                            comparator: x!
                         })}
                     />
                 </div>

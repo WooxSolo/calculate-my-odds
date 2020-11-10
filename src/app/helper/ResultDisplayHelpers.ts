@@ -1,8 +1,12 @@
-import { ResultDisplayType } from "../../shared/interfaces/ResultDisplays";
+import { ResultDisplayType, ResultDisplayTypeEnum } from "../../shared/interfaces/ResultDisplays";
 
 export const resultDisplays: ResultDisplayType[] = [
     {
-        type: "AVERAGE",
+        type: ResultDisplayTypeEnum.AverageDisplay,
         name: "Average"
+    },
+    {
+        type: ResultDisplayTypeEnum.CumulativeCompletionChartDisplay,
+        name: "Cumulative completion chart"
     }
 ];

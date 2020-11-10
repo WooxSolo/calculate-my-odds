@@ -7,6 +7,6 @@ export const calculationMethods: CalculationMethod[] = [
     },
     {
         type: "DYNAMIC",
-        name: "Dynamic programming"
+        name: "State based calculation"
     }
 ];

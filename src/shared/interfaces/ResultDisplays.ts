@@ -1,5 +1,10 @@
 
+export enum ResultDisplayTypeEnum {
+    AverageDisplay,
+    CumulativeCompletionChartDisplay
+}
+
 export interface ResultDisplayType {
-    type: string,
+    type: ResultDisplayTypeEnum,
     name: string
 }
