@@ -8,7 +8,7 @@ module.exports = env => ({
     module: {
         rules: [
             {
-                test: /\.worker\.ts$/,
+                test: /\.worker\.js$/,
                 use: {
                     loader: 'worker-loader',
                 },
