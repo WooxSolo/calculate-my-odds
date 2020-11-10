@@ -1,12 +1,12 @@
-import { CalculationMethod } from "../../shared/interfaces/CalculationMethods";
+import { CalculationMethod, CalculationMethodType } from "../../shared/interfaces/CalculationMethods";
 
 export const calculationMethods: CalculationMethod[] = [
     {
-        type: "SIMULATION",
+        type: CalculationMethodType.Simulation,
         name: "Simulation"
     },
     {
-        type: "DYNAMIC",
+        type: CalculationMethodType.Calculation,
         name: "State based calculation"
     }
 ];

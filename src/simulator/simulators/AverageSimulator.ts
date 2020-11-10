@@ -1,6 +1,6 @@
 import { Simulation } from "../../shared/interfaces/simulation/Simulation";
 import { AverageSimulationResult, SimulationResultType } from "../../shared/interfaces/simulation/SimulationResult";
-import { simulationLoop } from "../helpers/LoopHelper";
+import { runWorkerLoop } from "../../shared/helpers/LoopHelper";
 import { checkGoalCompletion, groupGoals } from "../helpers/SimulationHelpers";
 import { Simulator } from "./Simulator";
 
@@ -64,7 +64,7 @@ export class AverageSimulator implements Simulator {
     async start() {
         this.isRunning = true;
         
-        simulationLoop(() => {
+        runWorkerLoop(() => {
             this.simulateAverage();
             return this.isRunning;
         });

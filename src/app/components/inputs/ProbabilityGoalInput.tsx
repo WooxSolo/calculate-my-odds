@@ -46,8 +46,8 @@ export class ProbabilityGoalInput extends React.PureComponent<Props, State> {
                 <div className="goal-comparison-operator">
                     <Select
                         options={comparisonOperators}
-                        getOptionLabel={x => x.name}
-                        getOptionValue={x => x.name}
+                        getOptionLabel={x => x.type}
+                        getOptionValue={x => x.type}
                         value={this.props.goal.comparator}
                         onChange={x => this.props.onChange({
                             ...this.props.goal,

@@ -1,7 +1,7 @@
 import { Simulation } from "../../shared/interfaces/simulation/Simulation";
 import { DataSimulationResult, SimulationDataPoint, SimulationResultType } from "../../shared/interfaces/simulation/SimulationResult";
 import { calculatePrefixSum, getTruncatedArrayItems } from "../helpers/ArrayHelpers";
-import { simulationLoop } from "../helpers/LoopHelper";
+import { runWorkerLoop } from "../../shared/helpers/LoopHelper";
 import { isInRange } from "../helpers/NumberHelper";
 import { checkGoalCompletion, groupGoals } from "../helpers/SimulationHelpers";
 import { DataSimulator, Simulator } from "./Simulator";
@@ -73,7 +73,7 @@ export class CumulativeCompletionSimulator implements DataSimulator {
     start() {
         this.isRunning = true;
         
-        simulationLoop(() => {
+        runWorkerLoop(() => {
             this.simulateCumulative();
             return this.isRunning;
         });
@@ -96,10 +96,9 @@ export class CumulativeCompletionSimulator implements DataSimulator {
     }
     
     getTruncatedResult(maxDataPoints: number, minimumDistance?: number) {
-        debugger;
         let resultArray = calculatePrefixSum(this.result).map(x => x / this.iterations);
         if (minimumDistance !== undefined) {
-            while (resultArray.length > 0 && !isInRange(resultArray[resultArray.length - 1], minimumDistance, 1 - minimumDistance)) {
+            while (resultArray.length > 0 && resultArray[resultArray.length - 1] >= 1 - minimumDistance) {
                 resultArray.pop();
             }
         }

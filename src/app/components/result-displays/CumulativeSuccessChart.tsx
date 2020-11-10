@@ -3,7 +3,6 @@ import Chart from "chart.js";
 import { SimulationDataPoint } from "../../../shared/interfaces/simulation/SimulationResult";
 
 interface Props {
-    iterations: number,
     dataPoints: SimulationDataPoint[]
 }
 
@@ -83,7 +82,6 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
         const changed = this.props.dataPoints !== prevProps.dataPoints;
         if (changed && this.chart) {
             this.chart.options.scales?.xAxes?.forEach(axis => {
-                console.log("max", Math.max(...this.props.dataPoints.map(x => x.completions)));
                 axis.ticks!.suggestedMax = Math.max(...this.props.dataPoints.map(x => x.completions));
             });
             

@@ -1,10 +1,22 @@
-import { ComparisonOperator } from "../../shared/interfaces/Compators";
+import { ComparisonOperator, ComparisonOperatorType } from "../../shared/interfaces/Compators";
 
 export const comparisonOperators: ComparisonOperator[] = [
-    { name: "<" },
-    { name: ">" },
-    { name: "<=" },
-    { name: ">=" },
-    { name: "=" },
-    { name: "!=" }
+    {
+        type: ComparisonOperatorType.LessThan
+    },
+    {
+        type: ComparisonOperatorType.GreaterThan
+    },
+    {
+        type: ComparisonOperatorType.LessOrEquals
+    },
+    {
+        type: ComparisonOperatorType.GreaterOrEquals
+    },
+    {
+        type: ComparisonOperatorType.Equals
+    },
+    {
+        type: ComparisonOperatorType.NotEquals
+    }
 ];

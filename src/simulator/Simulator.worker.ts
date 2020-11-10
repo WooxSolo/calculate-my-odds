@@ -15,14 +15,13 @@ let currentSimulator: Simulator | undefined;
 ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
     const data = event.data;
     if (data.type === SimulationWorkerEventType.StartSimulation) {
-        const se = data as StartSimulationEvent;
-        switch (se.simulationType) {
+        switch (data.simulationType) {
             case SimulationType.AverageSimulation: {
-                currentSimulator = new AverageSimulator(se.simulation);
+                currentSimulator = new AverageSimulator(data.simulation);
                 break;
             }
             case SimulationType.CumulativeCompletionSimulation: {
-                currentSimulator = new CumulativeCompletionSimulator(se.simulation);
+                currentSimulator = new CumulativeCompletionSimulator(data.simulation);
                 break;
             }
             default: {
@@ -38,7 +37,7 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
             currentSimulator = undefined;
         }
     }
-    else if (data.type === SimulationWorkerEventType.RequestResult) {
+    else if (data.type === SimulationWorkerEventType.RequestSimpleResult) {
         if (currentSimulator) {
             const message: ReceivedResultSimulationEvent = {
                 type: SimulationMainEventTypes.ReceivedResult,

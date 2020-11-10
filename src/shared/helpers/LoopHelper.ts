@@ -1,6 +1,6 @@
-import { wait } from "./WaitHelpers";
+import { wait } from "../../simulator/helpers/WaitHelpers";
 
-export async function simulationLoop(next: () => boolean) {
+export async function runWorkerLoop(next: () => boolean) {
     let iterations = 0;
     let lastWaitTime = Date.now();
     let nextCheck = 0;

@@ -3,7 +3,7 @@ import { Simulation, SimulationType } from "./Simulation";
 export enum SimulationWorkerEventType {
     StartSimulation = "START_SIMULATION",
     StopSimulation = "STOP_SIMULATION",
-    RequestResult = "REQUEST_RESULT",
+    RequestSimpleResult = "REQUEST_SIMPLE_RESULT",
     RequestDataResult = "REQUEST_DATA_RESULT"
 }
 
@@ -17,8 +17,8 @@ export interface StopSimulationEvent {
     type: SimulationWorkerEventType.StopSimulation
 }
 
-export interface RequestResultSimulationEvent {
-    type: SimulationWorkerEventType.RequestResult
+export interface RequestSimpleResultSimulationEvent {
+    type: SimulationWorkerEventType.RequestSimpleResult
 }
 
 export interface RequestDataResultSimulationEvent {
@@ -29,5 +29,5 @@ export interface RequestDataResultSimulationEvent {
 
 export type SimulationWorkerEvent = StartSimulationEvent
     | StopSimulationEvent
-    | RequestResultSimulationEvent
+    | RequestSimpleResultSimulationEvent
     | RequestDataResultSimulationEvent
