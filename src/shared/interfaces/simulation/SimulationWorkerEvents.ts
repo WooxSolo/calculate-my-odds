@@ -1,4 +1,4 @@
-import { Simulation, SimulationType } from "./Simulation";
+import { Simulation } from "./Simulation";
 
 export enum SimulationWorkerEventType {
     StartSimulation = "START_SIMULATION",
@@ -9,8 +9,7 @@ export enum SimulationWorkerEventType {
 
 export interface StartSimulationEvent {
     type: SimulationWorkerEventType.StartSimulation,
-    simulation: Simulation,
-    simulationType: SimulationType
+    simulation: Simulation
 }
 
 export interface StopSimulationEvent {

@@ -2,14 +2,11 @@ import React from "react";
 import { CalculationMethod, CalculationMethodType } from "../../shared/interfaces/CalculationMethods";
 import { AnyProbabilityGoal } from "../../shared/interfaces/Goals";
 import { ProbabilityItem } from "../../shared/interfaces/Probability";
-import { ResultDisplayType, ResultDisplayTypeEnum } from "../../shared/interfaces/ResultDisplays";
 import { calculationMethods } from "../helper/CalculationMethodHelpers";
-import { resultDisplays } from "../helper/ResultDisplayHelpers";
 import { Button } from "./common/Button";
 import { Select } from "./common/Select";
 import SimulatorWorker from "worker-loader!../../simulator/Simulator.worker";
 import CalculationWorker from "worker-loader!../../calculator/Calculator.worker";
-import { SimulationType } from "../../shared/interfaces/simulation/Simulation";
 import { AverageResultDisplay } from "./result-displays/AverageResultDisplay";
 import { CumulativeSuccessChart } from "./result-displays/CumulativeSuccessChart";
 import { SimulationResult, SimulationResultType } from "../../shared/interfaces/simulation/SimulationResult";
@@ -17,8 +14,9 @@ import { ReceivedResultSimulationEvent, SimulationMainEvent, SimulationMainEvent
 import { RequestDataResultSimulationEvent, RequestSimpleResultSimulationEvent, SimulationWorkerEventType, StartSimulationEvent, StopSimulationEvent } from "../../shared/interfaces/simulation/SimulationWorkerEvents";
 import { CalculationMainEvent, CalculationMainEventTypes } from "../../shared/interfaces/calculator/CalculationMainEvents";
 import { CalculationResult, CalculationResultType } from "../../shared/interfaces/calculator/CalculationResult";
-import { CalculationType } from "../../shared/interfaces/calculator/Calculation";
-import { CalculationWorkerEventType, RequestDataResultCalculationEvent, RequestSimpleResultCalculationEvent, StartCalculationEvent, StopCalculationEvent } from "../../shared/interfaces/calculator/CalculationWorkerEvents";
+import { CalculationWorkerEventType, RequestDataResultCalculationEvent, StartCalculationEvent, StopCalculationEvent } from "../../shared/interfaces/calculator/CalculationWorkerEvents";
+import { SimulationResultDisplay } from "./result-displays/SimulationResultDisplay";
+import { CalculationResultDisplay } from "./result-displays/CalculationResultDisplay";
 
 interface Props {
     probabilities: ProbabilityItem[],
@@ -26,7 +24,6 @@ interface Props {
 }
 
 interface State {
-    displayType: ResultDisplayType,
     calculationMethod: CalculationMethod,
     // TODO: Merge SimulationResult and CalculationResult into one type
     simulationResult?: SimulationResult,
@@ -50,7 +47,6 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         this.setupCalculationWorkerMessageEvent();
         
         this.state = {
-            displayType: resultDisplays[0],
             calculationMethod: calculationMethods[0],
             isRunning: false
         };
@@ -95,20 +91,8 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     private async startSimulation() {
         const worker = this.simulationWorker;
         
-        let simulationType: SimulationType | undefined = undefined;
-        if (this.state.displayType.type === ResultDisplayTypeEnum.AverageDisplay) {
-            simulationType = SimulationType.AverageSimulation;
-        }
-        else if (this.state.displayType.type === ResultDisplayTypeEnum.CumulativeCompletionChartDisplay) {
-            simulationType = SimulationType.CumulativeCompletionSimulation;
-        }
-        if (!simulationType) {
-            throw new Error("SimulationType not found");
-        }
-        
         const startMessage: StartSimulationEvent = {
             type: SimulationWorkerEventType.StartSimulation,
-            simulationType: simulationType,
             simulation: {
                 probabilities: this.props.probabilities,
                 goals: this.props.goals
@@ -125,20 +109,12 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         const requestResult = () => {
             if (finished) return;
             
-            if (simulationType === SimulationType.CumulativeCompletionSimulation) {
-                const message: RequestDataResultSimulationEvent = {
-                    type: SimulationWorkerEventType.RequestDataResult,
-                    maxDataPoints: 50,
-                    minimumDistance: 0.01
-                };
-                worker.postMessage(message);
-            }
-            else {
-                const message: RequestSimpleResultSimulationEvent = {
-                    type: SimulationWorkerEventType.RequestSimpleResult
-                };
-                worker.postMessage(message);
-            }
+            const message: RequestDataResultSimulationEvent = {
+                type: SimulationWorkerEventType.RequestDataResult,
+                maxDataPoints: 50,
+                minimumDistance: 0.01
+            };
+            worker.postMessage(message);
             
             if (this.state.isRunning) {
                 requestAnimationFrame(requestResult);
@@ -150,20 +126,8 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     private async startCalculation() {
         const worker = this.calculationWorker;
         
-        let calculationType: CalculationType | undefined = undefined;
-        if (this.state.displayType.type === ResultDisplayTypeEnum.AverageDisplay) {
-            calculationType = CalculationType.Average;
-        }
-        else if (this.state.displayType.type === ResultDisplayTypeEnum.CumulativeCompletionChartDisplay) {
-            calculationType = CalculationType.CumulativeCompletion;
-        }
-        if (!calculationType) {
-            throw new Error("CalculationType not found");
-        }
-        
         const startMessage: StartCalculationEvent = {
             type: CalculationWorkerEventType.StartCalculation,
-            calculationType: calculationType,
             calculation: {
                 probabilities: this.props.probabilities,
                 goals: this.props.goals
@@ -180,20 +144,12 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         const requestResult = () => {
             if (finished) return;
             
-            if (calculationType === CalculationType.CumulativeCompletion) {
-                const message: RequestDataResultCalculationEvent = {
-                    type: CalculationWorkerEventType.RequestDataResult,
-                    maxDataPoints: 50,
-                    minimumDistance: 0.01
-                };
-                worker.postMessage(message);
-            }
-            else {
-                const message: RequestSimpleResultCalculationEvent = {
-                    type: CalculationWorkerEventType.RequestSimpleResult
-                };
-                worker.postMessage(message);
-            }
+            const message: RequestDataResultCalculationEvent = {
+                type: CalculationWorkerEventType.RequestDataResult,
+                maxDataPoints: 50,
+                minimumDistance: 0.01
+            };
+            worker.postMessage(message);
             
             if (this.state.isRunning) {
                 requestAnimationFrame(requestResult);
@@ -236,13 +192,6 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         return (
             <div>
                 <Select
-                    options={resultDisplays}
-                    getOptionLabel={x => x.name}
-                    getOptionValue={x => x.type}
-                    value={this.state.displayType}
-                    onChange={x => this.setState({ displayType: x! })}
-                />
-                <Select
                     options={calculationMethods}
                     getOptionLabel={x => x.name}
                     getOptionValue={x => x.type}
@@ -256,16 +205,11 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                 
                 {this.state.simulationResult &&
                 <>
-                    {this.state.simulationResult.type === SimulationResultType.AverageResult ?
+                    {this.state.simulationResult.type === SimulationResultType.DataResult ?
                     <div>
-                        <AverageResultDisplay
+                        <SimulationResultDisplay
                             iterations={this.state.simulationResult.iterations}
-                            attempts={this.state.simulationResult.totalAttempts}
-                        />
-                    </div>
-                    : this.state.simulationResult.type === SimulationResultType.DataResult ?
-                    <div>
-                        <CumulativeSuccessChart
+                            attempts={this.state.simulationResult.attempts}
                             dataPoints={this.state.simulationResult.dataPoints}
                         />
                     </div>
@@ -276,13 +220,11 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                 
                 {this.state.calculationResult &&
                 <>
-                    {this.state.calculationResult.type === CalculationResultType.AverageResult ?
+                    {this.state.calculationResult.type === CalculationResultType.DataResult ?
                     <div>
-                        TODO: Display result
-                    </div>
-                    : this.state.calculationResult.type === CalculationResultType.DataResult ?
-                    <div>
-                        <CumulativeSuccessChart
+                        <CalculationResultDisplay
+                            maximumErrorRange={this.state.calculationResult.maximumErrorRange}
+                            average={this.state.calculationResult.average}
                             dataPoints={this.state.calculationResult.dataPoints}
                         />
                     </div>

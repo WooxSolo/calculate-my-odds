@@ -1,4 +1,3 @@
-import { SimulationType } from "./Simulation";
 import { SimulationResult } from "./SimulationResult";
 
 export enum SimulationMainEventTypes {

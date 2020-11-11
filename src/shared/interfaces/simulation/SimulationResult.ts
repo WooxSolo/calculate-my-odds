@@ -1,13 +1,6 @@
 
 export enum SimulationResultType {
-    AverageResult = "AVERAGE_RESULT",
     DataResult = "DATA_RESULT"
-}
-
-export interface AverageSimulationResult {
-    type: SimulationResultType.AverageResult,
-    iterations: number,
-    totalAttempts: number
 }
 
 export interface SimulationDataPoint {
@@ -18,8 +11,8 @@ export interface SimulationDataPoint {
 export interface DataSimulationResult {
     type: SimulationResultType.DataResult,
     iterations: number,
+    attempts: number,
     dataPoints: SimulationDataPoint[]
 }
 
-export type SimulationResult = AverageSimulationResult
-    | DataSimulationResult
+export type SimulationResult = DataSimulationResult

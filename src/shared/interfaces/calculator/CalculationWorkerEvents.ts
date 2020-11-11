@@ -1,24 +1,18 @@
-import { Calculation, CalculationType } from "./Calculation";
+import { Calculation } from "./Calculation";
 
 export enum CalculationWorkerEventType {
     StartCalculation = "START_CALCULATION",
     StopCalculation = "STOP_CALCULATION",
-    RequestSimpleResult = "REQUEST_SIMPLE_RESULT",
     RequestDataResult = "REQUEST_DATA_RESULT"
 }
 
 export interface StartCalculationEvent {
     type: CalculationWorkerEventType.StartCalculation,
-    calculation: Calculation,
-    calculationType: CalculationType
+    calculation: Calculation
 }
 
 export interface StopCalculationEvent {
     type: CalculationWorkerEventType.StopCalculation
-}
-
-export interface RequestSimpleResultCalculationEvent {
-    type: CalculationWorkerEventType.RequestSimpleResult
 }
 
 export interface RequestDataResultCalculationEvent {
@@ -29,5 +23,4 @@ export interface RequestDataResultCalculationEvent {
 
 export type CalculationWorkerEvent = StartCalculationEvent
     | StopCalculationEvent
-    | RequestSimpleResultCalculationEvent
     | RequestDataResultCalculationEvent

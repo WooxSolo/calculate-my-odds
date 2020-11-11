@@ -17,8 +17,9 @@ export interface CalculationDataPoint {
 
 export interface DataCalculationResult {
     type: CalculationResultType.DataResult,
+    maximumErrorRange: number,
+    average: number,
     dataPoints: CalculationDataPoint[]
 }
 
-export type CalculationResult = AverageCalculationResult
-    | DataCalculationResult
+export type CalculationResult = DataCalculationResult

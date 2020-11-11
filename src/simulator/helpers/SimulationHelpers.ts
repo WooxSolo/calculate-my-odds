@@ -2,6 +2,17 @@ import { groupBy } from "lodash";
 import { ComparisonOperatorType } from "../../shared/interfaces/Compators";
 import { ProbabilityGoal } from "../../shared/interfaces/Goals";
 import { ProbabilityItem } from "../../shared/interfaces/Probability";
+import { DynamicInt64Array } from "../../shared/data-structures/DynamicInt64Array";
+
+export function calculateProbabilityArray(array: DynamicInt64Array, iterations: number) {
+    const result = new Float64Array(array.length);
+    let curr = BigInt(0);
+    for (let i = 0; i < array.length; i++) {
+        curr += array.get(i);
+        result[i] = Number(curr) / iterations;
+    }
+    return result;
+}
 
 export function checkGoalCompletion(count: number, goal: ProbabilityGoal) {
     const target = goal.targetCount!;
