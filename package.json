@@ -1,6 +1,6 @@
 {
-  "name": "probability-calculator",
-  "version": "1.0.0",
+  "name": "calculate-my-odds",
+  "version": "0.0.1",
   "description": "A tool to calculate probabilities.",
   "main": "index.ts",
   "scripts": {
