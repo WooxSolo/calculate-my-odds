@@ -37,14 +37,16 @@ export class Calculator {
     private lastStates: Map<string, number>;
     private maximumErrorRange: number;
     private average: number;
+    private onCompletion?: () => void;
     
-    constructor(calculation: Calculation) {
+    constructor(calculation: Calculation, onCompletion?: () => void) {
         this.isRunning = false;
         this.calculation = calculation;
         this.resultArray = new DynamicFloat64Array();
         this.lastStates = new Map<string, number>();
         this.maximumErrorRange = 1;
         this.average = 0;
+        this.onCompletion = onCompletion;
     }
     
     private calculateCompletionProbability(groupedGoals: ProbabilityGoal[][]) {
@@ -124,28 +126,25 @@ export class Calculator {
             }
         }
         
-        this.lastStates = new Map<string, number>();
-        const initialState: State = new Int32Array(probabilities.length);
-        this.lastStates.set(serializeState(initialState), 1);
+        if (this.lastStates.size === 0) {
+            const initialState: State = new Int32Array(probabilities.length);
+            this.lastStates.set(serializeState(initialState), 1);
+        }
         
-        let iterations = 0;
         runWorkerLoop(() => {
             const completionProbability = this.calculateCompletionProbability(groupedGoals);
             this.resultArray.push(completionProbability);
             this.maximumErrorRange = 1 - completionProbability;
             this.updateAverage();
 
-            // TODO: Change 0.99 to be a constant and make it closer to 1
-            if (completionProbability >= 0.99) {
+            // TODO: Change 0.999999 to be a constant and make it closer to 1
+            if (completionProbability >= 0.999999) {
+                this.onCompletion?.();
                 return false;
             }
             
-            if (iterations % 1000 === 0) {
-                console.log("completed", iterations);
-            }
             this.nextStateCalculation(probabilities, maxCounts);
             
-            iterations++;
             return this.isRunning;
         });
     }

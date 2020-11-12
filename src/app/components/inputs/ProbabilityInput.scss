@@ -3,13 +3,16 @@
     margin-left: -0.3em;
     margin-right: -0.3em;
     display: flex;
+    align-items: center;
     
     .probability-name {
-        flex-grow: 1;
+        flex-grow: 2;
+        flex-basis: 0;
     }
     
     .probability-chance {
         flex-grow: 1;
+        flex-basis: 0;
     }
     
     .probability-remove {

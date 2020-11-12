@@ -1,0 +1,18 @@
+
+.input {
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.4em 0.8em;
+    transition: box-shadow 0.2s ease-out;
+    border-radius: 0.2em;
+    border: 1px solid #535353;
+    color: white;
+    background-color: #434346;
+    height: 2.2em;
+    font-size: inherit;
+    
+    &:active, &:focus {
+        box-shadow: 0 0 0.3em 0.1em #7ca5f390;
+    }
+}

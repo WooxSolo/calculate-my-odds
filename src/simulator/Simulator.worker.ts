@@ -16,11 +16,15 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
         currentSimulator = new Simulator(data.simulation);
         currentSimulator.start();
     }
-    else if (data.type === SimulationWorkerEventType.StopSimulation) {
-        if (currentSimulator) {
-            currentSimulator.pause();
-            currentSimulator = undefined;
-        }
+    else if (data.type === SimulationWorkerEventType.PauseSimulation) {
+        currentSimulator?.pause();
+    }
+    else if (data.type === SimulationWorkerEventType.ResumeSimulation) {
+        currentSimulator?.start();
+    }
+    else if (data.type === SimulationWorkerEventType.CancelSimulation) {
+        currentSimulator?.destroy();
+        currentSimulator = undefined;
     }
     else if (data.type === SimulationWorkerEventType.RequestDataResult) {
         if (currentSimulator) {

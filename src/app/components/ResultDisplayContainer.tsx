@@ -1,22 +1,22 @@
+import "./ResultDisplayContainer.scss";
 import React from "react";
 import { CalculationMethod, CalculationMethodType } from "../../shared/interfaces/CalculationMethods";
 import { AnyProbabilityGoal } from "../../shared/interfaces/Goals";
 import { ProbabilityItem } from "../../shared/interfaces/Probability";
 import { calculationMethods } from "../helper/CalculationMethodHelpers";
-import { Button } from "./common/Button";
+import { Button, ButtonSize } from "./common/Button";
 import { Select } from "./common/Select";
 import SimulatorWorker from "worker-loader!../../simulator/Simulator.worker";
 import CalculationWorker from "worker-loader!../../calculator/Calculator.worker";
-import { AverageResultDisplay } from "./result-displays/AverageResultDisplay";
-import { CumulativeSuccessChart } from "./result-displays/CumulativeSuccessChart";
 import { SimulationResult, SimulationResultType } from "../../shared/interfaces/simulation/SimulationResult";
 import { ReceivedResultSimulationEvent, SimulationMainEvent, SimulationMainEventTypes } from "../../shared/interfaces/simulation/SimulationMainEvents";
-import { RequestDataResultSimulationEvent, RequestSimpleResultSimulationEvent, SimulationWorkerEventType, StartSimulationEvent, StopSimulationEvent } from "../../shared/interfaces/simulation/SimulationWorkerEvents";
+import { RequestDataResultSimulationEvent, RequestSimpleResultSimulationEvent, SimulationWorkerEventType, StartSimulationEvent, PauseSimulationEvent, ResumeSimulationEvent, CancelSimulationEvent } from "../../shared/interfaces/simulation/SimulationWorkerEvents";
 import { CalculationMainEvent, CalculationMainEventTypes } from "../../shared/interfaces/calculator/CalculationMainEvents";
 import { CalculationResult, CalculationResultType } from "../../shared/interfaces/calculator/CalculationResult";
-import { CalculationWorkerEventType, RequestDataResultCalculationEvent, StartCalculationEvent, StopCalculationEvent } from "../../shared/interfaces/calculator/CalculationWorkerEvents";
+import { CalculationWorkerEventType, RequestDataResultCalculationEvent, StartCalculationEvent, PauseCalculationEvent, ResumeCalculationEvent, CancelCalculationEvent } from "../../shared/interfaces/calculator/CalculationWorkerEvents";
 import { SimulationResultDisplay } from "./result-displays/SimulationResultDisplay";
 import { CalculationResultDisplay } from "./result-displays/CalculationResultDisplay";
+import { SpaceContainer } from "./common/SpaceContainer";
 
 interface Props {
     probabilities: ProbabilityItem[],
@@ -35,11 +35,13 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     // TODO: Merge simulationWorker and calculationWorker into one worker
     private simulationWorker: SimulatorWorker;
     private calculationWorker: CalculationWorker;
+    private acceptingResults: boolean;
     private cancelFunc?: () => void;
     
     constructor(props: Props) {
         super(props);
         
+        this.acceptingResults = false;
         this.simulationWorker = new SimulatorWorker();
         this.calculationWorker = new CalculationWorker();
         
@@ -58,7 +60,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         this.simulationWorker.onmessage = (e: MessageEvent<SimulationMainEvent>) => {
             const data = e.data;
             if (data.type === SimulationMainEventTypes.ReceivedResult) {
-                if (data.result) {
+                if (this.acceptingResults && data.result) {
                     this.setState({
                         simulationResult: data.result
                     });
@@ -71,14 +73,19 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         this.calculationWorker.onmessage = (e: MessageEvent<CalculationMainEvent>) => {
             const data = e.data;
             if (data.type === CalculationMainEventTypes.ReceivedResult) {
-                if (data.result) {
-                    if (Math.random() < 0.01) {
-                        console.log("result", data.result);
-                    }
+                if (this.acceptingResults && data.result) {
                     this.setState({
                         calculationResult: data.result
                     });
                 }
+            }
+            else if (data.type === CalculationMainEventTypes.FinishedCalculation) {
+                this.cancelRunningCalculation();
+                this.setState({
+                    isRunning: false
+                });
+                
+                this.requestCalculationResult();
             }
         };
     }
@@ -100,12 +107,26 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         };
         worker.postMessage(startMessage);
         
+        this.acceptingResults = true;
         await this.setState({
-            isRunning: true
+            isRunning: true,
+            simulationResult: undefined,
+            calculationResult: undefined
         });
         
+        this.startRequestingSimulationResult();
+    }
+    
+    private startRequestingSimulationResult() {
         let finished = false;
-        this.cancelFunc = () => finished = true;
+        this.cancelFunc = () => {
+            finished = true;
+            
+            const message: CancelSimulationEvent = {
+                type: SimulationWorkerEventType.CancelSimulation
+            };
+            this.simulationWorker.postMessage(message);
+        };
         const requestResult = () => {
             if (finished) return;
             
@@ -114,7 +135,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                 maxDataPoints: 50,
                 minimumDistance: 0.01
             };
-            worker.postMessage(message);
+            this.simulationWorker.postMessage(message);
             
             if (this.state.isRunning) {
                 requestAnimationFrame(requestResult);
@@ -135,21 +156,39 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         };
         worker.postMessage(startMessage);
         
+        this.acceptingResults = true;
         await this.setState({
-            isRunning: true
+            isRunning: true,
+            calculationResult: undefined,
+            simulationResult: undefined
         });
         
+        this.startRequestingCalculationResult();
+    }
+    
+    private requestCalculationResult() {
+        const message: RequestDataResultCalculationEvent = {
+            type: CalculationWorkerEventType.RequestDataResult,
+            maxDataPoints: 50,
+            minimumDistance: 0.01
+        };
+        this.calculationWorker.postMessage(message);
+    }
+    
+    private startRequestingCalculationResult() {
         let finished = false;
-        this.cancelFunc = () => finished = true;
+        this.cancelFunc = () => {
+            finished = true;
+            
+            const message: CancelCalculationEvent = {
+                type: CalculationWorkerEventType.CancelCalculation
+            };
+            this.simulationWorker.postMessage(message);
+        };
         const requestResult = () => {
             if (finished) return;
             
-            const message: RequestDataResultCalculationEvent = {
-                type: CalculationWorkerEventType.RequestDataResult,
-                maxDataPoints: 50,
-                minimumDistance: 0.01
-            };
-            worker.postMessage(message);
+            this.requestCalculationResult();
             
             if (this.state.isRunning) {
                 requestAnimationFrame(requestResult);
@@ -169,16 +208,37 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         }
     }
     
-    private pauseSimulation() {
+    private async resumeSimulation() {
         if (this.simulationWorker) {
-            const message: StopSimulationEvent = {
-                type: SimulationWorkerEventType.StopSimulation
+            const message: ResumeSimulationEvent = {
+                type: SimulationWorkerEventType.ResumeSimulation
             };
             this.simulationWorker.postMessage(message);
         }
         if (this.calculationWorker) {
-            const message: StopCalculationEvent = {
-                type: CalculationWorkerEventType.StopCalculation
+            const message: ResumeCalculationEvent = {
+                type: CalculationWorkerEventType.ResumeCalculation
+            };
+            this.calculationWorker.postMessage(message);
+        }
+        
+        await this.setState({
+            isRunning: true
+        });
+        
+        this.startRequestingSimulationResult();
+    }
+    
+    private pauseSimulation() {
+        if (this.simulationWorker) {
+            const message: PauseSimulationEvent = {
+                type: SimulationWorkerEventType.PauseSimulation
+            };
+            this.simulationWorker.postMessage(message);
+        }
+        if (this.calculationWorker) {
+            const message: PauseCalculationEvent = {
+                type: CalculationWorkerEventType.PauseCalculation
             };
             this.calculationWorker.postMessage(message);
         }
@@ -188,58 +248,78 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         });
     }
     
+    private clearResult() {
+        this.acceptingResults = false;
+        this.cancelRunningCalculation();
+        
+        this.setState({
+            simulationResult: undefined,
+            calculationResult: undefined,
+            isRunning: false
+        });
+    }
+    
     render() {
         return (
-            <div>
-                <Select
-                    options={calculationMethods}
-                    getOptionLabel={x => x.name}
-                    getOptionValue={x => x.type}
-                    value={this.state.calculationMethod}
-                    onChange={x => this.setState({ calculationMethod: x! })}
-                />
-                <Button
-                    content="Calculate"
-                    onClick={this.calculateResult}
-                />
-                
-                {this.state.simulationResult &&
+            <div className="result-display-container-component">
                 <>
-                    {this.state.simulationResult.type === SimulationResultType.DataResult ?
-                    <div>
-                        <SimulationResultDisplay
-                            iterations={this.state.simulationResult.iterations}
-                            attempts={this.state.simulationResult.attempts}
-                            dataPoints={this.state.simulationResult.dataPoints}
-                        />
-                    </div>
-                    : null
+                    {this.state.simulationResult &&
+                    <>
+                        {this.state.simulationResult.type === SimulationResultType.DataResult ?
+                        <div>
+                            <SimulationResultDisplay
+                                iterations={this.state.simulationResult.iterations}
+                                attempts={this.state.simulationResult.attempts}
+                                dataPoints={this.state.simulationResult.dataPoints}
+                                isSimulationRunning={this.state.isRunning}
+                                onRequestPlay={() => this.resumeSimulation()}
+                                onRequestPause={() => this.pauseSimulation()}
+                                onRequestNewCalculation={() => this.clearResult()}
+                            />
+                        </div>
+                        : null
+                        }
+                    </>
+                    }
+                    
+                    {this.state.calculationResult &&
+                    <>
+                        {this.state.calculationResult.type === CalculationResultType.DataResult ?
+                        <div>
+                            <CalculationResultDisplay
+                                maximumErrorRange={this.state.calculationResult.maximumErrorRange}
+                                average={this.state.calculationResult.average}
+                                dataPoints={this.state.calculationResult.dataPoints}
+                                onRequestNewCalculation={() => this.clearResult()}
+                            />
+                        </div>
+                        : null
+                        }
+                    </>
                     }
                 </>
-                }
                 
-                {this.state.calculationResult &&
-                <>
-                    {this.state.calculationResult.type === CalculationResultType.DataResult ?
+                {(!this.state.simulationResult && !this.state.calculationResult) &&
+                <SpaceContainer>
                     <div>
-                        <CalculationResultDisplay
-                            maximumErrorRange={this.state.calculationResult.maximumErrorRange}
-                            average={this.state.calculationResult.average}
-                            dataPoints={this.state.calculationResult.dataPoints}
+                        <label>Method</label>
+                        <Select
+                            options={calculationMethods}
+                            getOptionLabel={x => x.name}
+                            getOptionValue={x => x.type}
+                            value={this.state.calculationMethod}
+                            onChange={x => this.setState({ calculationMethod: x! })}
+                            width="14em"
                         />
                     </div>
-                    : null
-                    }
-                </>
-                }
-                
-                {this.state.isRunning &&
-                <div>
-                    <Button
-                        content="Stop"
-                        onClick={() => this.pauseSimulation()}
-                    />
-                </div>
+                    <div>
+                        <Button
+                            content="Calculate"
+                            onClick={this.calculateResult}
+                            size={ButtonSize.Large}
+                        />
+                    </div>
+                </SpaceContainer>
                 }
             </div>
         );

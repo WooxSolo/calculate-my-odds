@@ -12,7 +12,7 @@ export function getTruncatedDataDynamic(array: DynamicFloat64Array, maxDataPoint
     
     let highIndex = array.length - 1;
     if (minimumDistance !== undefined) {
-        while (highIndex > 0 && array.get(highIndex) >= 1 - minimumDistance) {
+        while (highIndex > 1 && array.get(highIndex - 1) >= 1 - minimumDistance) {
             highIndex--;
         }
     }
@@ -31,7 +31,7 @@ export function getTruncatedData(array: Float64Array, maxDataPoints: number, min
     
     let highIndex = array.length - 1;
     if (minimumDistance !== undefined) {
-        while (highIndex > 0 && array[highIndex] >= 1 - minimumDistance) {
+        while (highIndex > 1 && array[highIndex - 1] >= 1 - minimumDistance) {
             highIndex--;
         }
     }

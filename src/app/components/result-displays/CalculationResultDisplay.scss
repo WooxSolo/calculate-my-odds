@@ -1,0 +1,15 @@
+
+.calculation-result-display-component {
+    display: flex;
+    
+    .result-info {
+        width: 25%;
+        flex-grow: 0;
+        padding-right: 2em;
+    }
+    
+    .result-chart {
+        flex-basis: 0;
+        flex-grow: 1;
+    }
+}

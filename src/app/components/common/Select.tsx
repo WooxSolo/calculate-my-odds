@@ -1,3 +1,4 @@
+import "./Select.scss";
 import React from "react";
 import ReactSelect, { ValueType } from "react-select";
 
@@ -6,7 +7,8 @@ interface Props<T> {
     value?: T,
     onChange?: (value?: T) => void,
     getOptionLabel: (value: T) => string,
-    getOptionValue: (value: T) => string | number
+    getOptionValue: (value: T) => string | number,
+    width?: string | number
 }
 
 interface State {
@@ -36,27 +38,16 @@ export class Select<T> extends React.PureComponent<Props<T>, State> {
                     }
                     return value.toString();
                 }}
+                className="select"
+                classNamePrefix="react-select"
                 styles={{
-                    valueContainer: (base, props) => ({
+                    control: base => ({
                         ...base,
-                        padding: 0,
+                        width: this.props.width ?? "100%"
                     }),
-                    control: (base, props) => ({
+                    menu: base => ({
                         ...base,
-                        padding: "0 0.2em",
-                        height: "2.2em",
-                        minHeight: undefined
-                    }),
-                    menuList: (base, props) => ({
-                        ...base,
-                    }),
-                    option: (base, props) => ({
-                        ...base,
-                        padding: "0.3em 0.5em"
-                    }),
-                    dropdownIndicator: (base, props) => ({
-                        ...base,
-                        padding: 0
+                        width: this.props.width ?? "100%"
                     })
                 }}
             />

@@ -1,0 +1,83 @@
+
+.select {
+    input {
+        // TODO: Add some classname to inputs instead
+        box-shadow: none;
+    }
+    
+    .react-select__control {
+        padding: 0 0.8em;
+        height: 2.2em;
+        min-height: initial;
+        background-color: #434346;
+        border: 1px solid #535353;
+        transition: box-shadow 0.2s ease-out;
+        box-sizing: border-box;
+        border-radius: 0.2em;
+        
+        &:hover {
+            border: 1px solid #535353;
+        }
+        
+        &--is-focused {
+            box-shadow: 0 0 0.3em 0.1em #7ca5f390;
+        }
+    }
+    
+    .react-select__option {
+        padding: 0.3em 0.5em;
+    }
+    
+    .react-select__dropdown-indicator {
+        padding: 0;
+    }
+    
+    .react-select__single-value {
+        color: #FFFFFF;
+    }
+    
+    .react-select__input {
+        color: #FFFFFF;
+    }
+    
+    .react-select__value-container {
+        padding: 0;
+        
+        > * {
+            margin: 0;
+            padding: 0;
+        }
+    }
+    
+    .react-select__indicator-separator {
+        display: none;
+    }
+    
+    .react-select__indicator {
+        color: #CCCCCC;
+        
+        &:hover {
+            color: #CCCCCC;
+        }
+    }
+    
+    .react-select__menu {
+        background-color: #434346;
+        margin-top: 0;
+        border: 1px solid #666666;
+        box-shadow: 0 0.3em 1em #000000A0;
+    }
+    
+    .react-select__menu-list {
+        background-color: inherit;
+        color: white;
+    }
+    
+    .react-select__option--is-focused {
+        background-color: #5b5b5d;
+    }
+    
+    .react-select__option--is-selected {
+        background-color: #2E6FEC;
+    }
+}

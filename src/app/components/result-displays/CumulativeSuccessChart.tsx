@@ -27,12 +27,17 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
             type: "scatter",
             options: {
                 showLines: true,
+                responsive: true, // TODO: Change to false but fix distortion
                 tooltips: {
                     mode: "index",
                     intersect: false,
                     callbacks: {
                         label: x => `${x.xLabel} ${x.xLabel === 1 ? "roll" : "rolls"}: ${((x.yLabel as number) * 100).toFixed(1)}%`
-                    }
+                    },
+                    displayColors: false
+                },
+                legend: {
+                    display: false
                 },
                 hover: {
                     mode: "nearest",
@@ -72,7 +77,9 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
                     data: this.props.dataPoints.map(p => ({
                         x: p.completions,
                         y: p.probability
-                    }))
+                    })),
+                    pointBackgroundColor: "#2E6FEC80",
+                    borderColor: "#2E6FEC40"
                 }]
             }
         });
@@ -96,7 +103,9 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
     render() {
         return (
             <div>
-                <canvas ref={this.canvasRef}>
+                <canvas ref={this.canvasRef} style={{
+                    width: "100%"
+                }}>
                     
                 </canvas>
             </div>

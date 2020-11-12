@@ -2,7 +2,9 @@ import { Calculation } from "./Calculation";
 
 export enum CalculationWorkerEventType {
     StartCalculation = "START_CALCULATION",
-    StopCalculation = "STOP_CALCULATION",
+    PauseCalculation = "PAUSE_CALCULATION",
+    ResumeCalculation = "RESUME_CALCULATION",
+    CancelCalculation = "CANCEL_CALCULATION",
     RequestDataResult = "REQUEST_DATA_RESULT"
 }
 
@@ -11,8 +13,16 @@ export interface StartCalculationEvent {
     calculation: Calculation
 }
 
-export interface StopCalculationEvent {
-    type: CalculationWorkerEventType.StopCalculation
+export interface PauseCalculationEvent {
+    type: CalculationWorkerEventType.PauseCalculation
+}
+
+export interface ResumeCalculationEvent {
+    type: CalculationWorkerEventType.ResumeCalculation
+}
+
+export interface CancelCalculationEvent {
+    type: CalculationWorkerEventType.CancelCalculation
 }
 
 export interface RequestDataResultCalculationEvent {
@@ -22,5 +32,7 @@ export interface RequestDataResultCalculationEvent {
 }
 
 export type CalculationWorkerEvent = StartCalculationEvent
-    | StopCalculationEvent
+    | PauseCalculationEvent
+    | ResumeCalculationEvent
+    | CancelCalculationEvent
     | RequestDataResultCalculationEvent

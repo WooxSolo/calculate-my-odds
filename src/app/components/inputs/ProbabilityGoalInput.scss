@@ -1,6 +1,7 @@
 
 .probability-goal-input-component {
     display: flex;
+    align-items: center;
     width: 100%;
     margin-left: -0.3em;
     margin-right: -0.3em;
@@ -14,7 +15,7 @@
     }
     
     .goal-target-container {
-        flex-grow: 1;
+        width: 5em;
     }
     
     .goal-button-container {

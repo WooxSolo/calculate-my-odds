@@ -1,8 +1,12 @@
+import "./ProbabilityInputContainer.scss";
 import React from "react";
 import { ProbabilityItem } from "../../shared/interfaces/Probability";
 import { nextUniqueId } from "../helper/IdHelpers";
 import { Button } from "./common/Button";
 import { ProbabilityInput } from "./inputs/ProbabilityInput";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { SpaceContainer } from "./common/SpaceContainer";
 
 interface Props {
     onChange: (probabilities: ProbabilityItem[]) => void
@@ -56,20 +60,26 @@ export class ProbabilityInputContainer extends React.PureComponent<Props, State>
     
     render() {
         return (
-            <div>
-                {this.state.probabilities.map((p, index) => (
-                    <ProbabilityInput
-                        key={p.id}
-                        item={p}
-                        onChange={item => this.updateProbability(index, item)}
-                        onDeleteRequest={() => this.deleteProbability(p)}
+            <SpaceContainer className="probability-input-container-component">
+                {this.state.probabilities.length > 0 &&
+                <div>
+                    {this.state.probabilities.map((p, index) => (
+                        <ProbabilityInput
+                            key={p.id}
+                            item={p}
+                            onChange={item => this.updateProbability(index, item)}
+                            onDeleteRequest={() => this.deleteProbability(p)}
+                        />
+                    ))}
+                </div>
+                }
+                <div>
+                    <Button
+                        content={<FontAwesomeIcon icon={faPlus} />}
+                        onClick={() => this.addNewItem()}
                     />
-                ))}
-                <Button
-                    content="Add item"
-                    onClick={() => this.addNewItem()}
-                />
-            </div>
+                </div>
+            </SpaceContainer>
         );
     }
 }

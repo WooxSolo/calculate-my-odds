@@ -1,3 +1,4 @@
+import "./GoalInputContainer.scss";
 import React from "react";
 import { ComparisonOperatorType } from "../../shared/interfaces/Compators";
 import { AnyProbabilityGoal, ProbabilityGoal } from "../../shared/interfaces/Goals";
@@ -6,6 +7,9 @@ import { comparisonOperators } from "../helper/ComparatorOperators";
 import { nextUniqueId } from "../helper/IdHelpers";
 import { Button } from "./common/Button";
 import { ProbabilityGoalInput } from "./inputs/ProbabilityGoalInput";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { SpaceContainer } from "./common/SpaceContainer";
 
 interface Props {
     probabilities: ProbabilityItem[],
@@ -60,22 +64,28 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
     
     render() {
         return (
-            <div>
-                {this.state.goals.map((goal, index) => (
-                    <div key={goal.id}>
-                        <ProbabilityGoalInput
-                            probabilityItems={this.props.probabilities}
-                            goal={goal}
-                            onChange={x => this.updateGoal(index, x)}
-                            onDeleteRequest={() => this.deleteGoal(goal)}
-                        />
-                    </div>
-                ))}
-                <Button
-                    content="Add goal"
-                    onClick={() => this.addNewGoal()}
-                />
-            </div>
+            <SpaceContainer className="goal-input-container-component">
+                {this.state.goals.length > 0 &&
+                <div>
+                    {this.state.goals.map((goal, index) => (
+                        <div key={goal.id}>
+                            <ProbabilityGoalInput
+                                probabilityItems={this.props.probabilities}
+                                goal={goal}
+                                onChange={x => this.updateGoal(index, x)}
+                                onDeleteRequest={() => this.deleteGoal(goal)}
+                            />
+                        </div>
+                    ))}
+                </div>
+                }
+                <div>
+                    <Button
+                        content={<FontAwesomeIcon icon={faPlus} />}
+                        onClick={() => this.addNewGoal()}
+                    />
+                </div>
+            </SpaceContainer>
         );
     }
 }

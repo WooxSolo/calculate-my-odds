@@ -1,49 +1,23 @@
 import "./App.scss";
 import React from "react";
-import { ProbabilityInputContainer } from "./components/ProbabilityInputContainer";
-import { GoalInputContainer } from "./components/GoalInputContainer";
-import { ResultDisplayContainer } from "./components/ResultDisplayContainer";
-import { ProbabilityItem } from "../shared/interfaces/Probability";
-import { AnyProbabilityGoal } from "../shared/interfaces/Goals";
+import { AppContainer } from "./components/AppContainer";
 
 interface Props {
     
 }
 
 interface State {
-    probabilities: ProbabilityItem[],
-    goals: AnyProbabilityGoal[]
+    
 }
 
 export class App extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
-        
-        this.state = {
-            probabilities: [],
-            goals: []
-        };
     }
     
     render() {
         return (
-            <div>
-                <ProbabilityInputContainer
-                    onChange={probabilities => this.setState({
-                        probabilities: probabilities
-                    })}
-                />
-                <GoalInputContainer
-                    probabilities={this.state.probabilities}
-                    onChange={goals => this.setState({
-                        goals: goals
-                    })}
-                />
-                <ResultDisplayContainer
-                    probabilities={this.state.probabilities}
-                    goals={this.state.goals}
-                />
-            </div>
+            <AppContainer />
         );
     }
 }

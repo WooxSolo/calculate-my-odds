@@ -4,23 +4,13 @@ html, body {
     font-family: 'Source Sans Pro', sans-serif;
     font-size: 14px;
     background: #1f1f23;
+    color: white;
+}
+
+body {
+    margin: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Montserrat', sans-serif;
-}
-
-input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0.4em 0.8em;
-    transition: box-shadow 0.3s ease-out;
-    
-    &:active, &:focus {
-        box-shadow: 0 0 0.3em #498CFF;
-    }
-}
-
-.btn {
-    padding: 0.4em 0.8em;
 }

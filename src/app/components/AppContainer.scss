@@ -1,0 +1,24 @@
+
+.app-container-component {
+    .app-input-container {
+        display: flex;
+        border-bottom: 1px solid #1c1c1c;
+        box-shadow: 0 0.3em 0.3em #00000030;
+    }
+    
+    .app-probability-input-container {
+        flex-grow: 1;
+        flex-basis: 0;
+        background-color: lighten($color: #1f1f23, $amount: 5%);
+    }
+    
+    .app-goal-input-container {
+        flex-grow: 1;
+        flex-basis: 0;
+        background-color: lighten($color: #1f1f23, $amount: 3%);
+    }
+    
+    .app-result-container {
+        
+    }
+}
