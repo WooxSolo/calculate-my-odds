@@ -15,6 +15,7 @@ interface Props {
     attempts: number,
     probabilityAtIterations?: number,
     iterationsAtProbability?: number,
+    highestIteration?: number,
     dataPoints: SimulationDataPoint[],
     isSimulationRunning: boolean,
     onRequestPlay?: () => void,
@@ -33,6 +34,16 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
         
         this.state = {
         };
+    }
+    
+    private getIterationsAtProbabilityContent() {
+        if (this.props.iterationsAtProbability === undefined) {
+            return undefined;
+        }
+        if (this.props.iterationsAtProbability === this.props.highestIteration) {
+            return `>${this.props.iterationsAtProbability - 1}`;
+        }
+        return this.props.iterationsAtProbability.toLocaleString();
     }
     
     private getProbabilityAtIterationsContent() {
@@ -110,7 +121,7 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
                                     {" "} chance of completion
                                 </span>
                             )}
-                            content={this.props.iterationsAtProbability?.toLocaleString()}
+                            content={this.getIterationsAtProbabilityContent()}
                         />
                     </div>
                     <div>

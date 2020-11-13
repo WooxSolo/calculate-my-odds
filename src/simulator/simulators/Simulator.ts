@@ -106,7 +106,8 @@ export class Simulator {
             attempts: this.attempts,
             dataPoints: dataPoints,
             iterationsAtProbability: this.getIterationsAtProbability(),
-            probabilityAtIterations: this.getProbabilityAtIterations()
+            probabilityAtIterations: this.getProbabilityAtIterations(),
+            highestIteration: this.result.length - 1
         };
         return result;
     }

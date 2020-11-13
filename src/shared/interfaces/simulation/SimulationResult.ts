@@ -14,7 +14,8 @@ export interface DataSimulationResult {
     attempts: number,
     dataPoints: SimulationDataPoint[],
     iterationsAtProbability: number,
-    probabilityAtIterations: number
+    probabilityAtIterations: number,
+    highestIteration: number
 }
 
 export type SimulationResult = DataSimulationResult

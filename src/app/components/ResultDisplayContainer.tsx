@@ -32,7 +32,8 @@ interface State {
     isRunning: boolean,
     totalCalculationIterations?: number,
     probabilityAtIterations?: number,
-    iterationsAtProbability?: number
+    iterationsAtProbability?: number,
+    highestIteration?: number
 }
 
 export class ResultDisplayContainer extends React.PureComponent<Props, State> {
@@ -68,7 +69,8 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                     this.setState({
                         simulationResult: data.result,
                         probabilityAtIterations: data.result.probabilityAtIterations,
-                        iterationsAtProbability: data.result.iterationsAtProbability
+                        iterationsAtProbability: data.result.iterationsAtProbability,
+                        highestIteration: data.result.highestIteration
                     });
                     this.awaitingResultId = undefined;
                 }
@@ -339,6 +341,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                             attempts={this.state.simulationResult.attempts}
                             iterationsAtProbability={this.state.iterationsAtProbability}
                             probabilityAtIterations={this.state.probabilityAtIterations}
+                            highestIteration={this.state.highestIteration}
                             dataPoints={this.state.simulationResult.dataPoints}
                             isSimulationRunning={this.state.isRunning}
                             onRequestPlay={() => this.resumeSimulation()}
