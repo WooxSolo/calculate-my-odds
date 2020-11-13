@@ -13,7 +13,11 @@ function parseFraction(probabilityString: string) {
         return undefined;
     }
     
-    return numerator / denominator;
+    const value = numerator / denominator;
+    if (value < 0 || value > 1) {
+        return undefined;
+    }
+    return value;
 }
 
 function parsePercentage(probabilityString: string) {
@@ -22,8 +26,11 @@ function parsePercentage(probabilityString: string) {
         return undefined;
     }
     
-    const value = parseFloat(match[1].replace(",", "."));
-    return value / 100;
+    const value = parseFloat(match[1].replace(",", ".")) / 100;
+    if (value < 0 || value > 1) {
+        return undefined;
+    }
+    return value;
 }
 
 function parseValue(probabilityString: string) {
@@ -33,6 +40,9 @@ function parseValue(probabilityString: string) {
     }
     
     const value = parseFloat(match[1].replace(",", "."));
+    if (value < 0 || value > 1) {
+        return undefined;
+    }
     return value;
 }
 

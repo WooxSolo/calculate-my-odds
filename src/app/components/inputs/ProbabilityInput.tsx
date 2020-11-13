@@ -15,7 +15,6 @@ interface Props {
 }
 
 interface State {
-    
 }
 
 export class ProbabilityInput extends React.PureComponent<Props, State> {
@@ -23,8 +22,15 @@ export class ProbabilityInput extends React.PureComponent<Props, State> {
         super(props);
         
         this.state = {
-            
+            isProbabilityInputFocused: false
         };
+    }
+    
+    private shouldMarkError(inputValue?: string) {
+        if (inputValue === undefined || inputValue.length === 0) {
+            return false;
+        }
+        return parseProbability(inputValue) === undefined;
     }
     
     render() {
@@ -51,6 +57,8 @@ export class ProbabilityInput extends React.PureComponent<Props, State> {
                             probabilityDisplay: e.target.value,
                             probability: parseProbability(e.target.value)
                         })}
+                        markError={this.shouldMarkError(this.props.item.probabilityDisplay)}
+                        onlyMarkErrorOnBlur
                     />
                 </div>
                 <div className="probability-remove">

@@ -1,10 +1,13 @@
 import "./Input.scss";
 import React from "react";
 
-type Props = React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
+type Props = {
+    markError?: boolean,
+    onlyMarkErrorOnBlur?: boolean
+} & React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
 
 interface State {
-    
+    isFocused: boolean
 }
 
 export class Input extends React.PureComponent<Props, State> {
@@ -12,15 +15,29 @@ export class Input extends React.PureComponent<Props, State> {
         super(props);
         
         this.state = {
-            
+            isFocused: false
         };
     }
     
     render() {
+        const { markError, onlyMarkErrorOnBlur, onFocus, onBlur, ...props } = this.props;
+        const shouldMarkError = (!onlyMarkErrorOnBlur || !this.state.isFocused) && markError;
         return (
             <input
-                {...this.props}
-                className={`input ${this.props.className ?? ""}`}
+                {...props}
+                onFocus={e => {
+                    this.setState({
+                        isFocused: true
+                    });
+                    onFocus?.(e);
+                }}
+                onBlur={e => {
+                    this.setState({
+                        isFocused: false
+                    });
+                    onBlur?.(e);
+                }}
+                className={`input ${shouldMarkError ? "input-error" : ""} ${this.props.className ?? ""}`}
             />
         );
     }
