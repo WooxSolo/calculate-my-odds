@@ -339,6 +339,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                         <SimulationResultDisplay
                             iterations={this.state.simulationResult.iterations}
                             attempts={this.state.simulationResult.attempts}
+                            successfulIterations={this.state.simulationResult.successfulIterations}
                             iterationsAtProbability={this.state.iterationsAtProbability}
                             probabilityAtIterations={this.state.probabilityAtIterations}
                             highestIteration={this.state.highestIteration}
@@ -373,8 +374,9 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                         <div>
                             <CalculationResultDisplay
                                 totalIterations={this.state.totalCalculationIterations}
-                                maximumErrorRange={this.state.calculationResult.maximumErrorRange}
                                 average={this.state.calculationResult.average}
+                                completionRate={this.state.calculationResult.completionRate}
+                                failureRate={this.state.calculationResult.failureRate}
                                 dataPoints={this.state.calculationResult.dataPoints}
                                 iterationsAtProbability={this.state.iterationsAtProbability}
                                 probabilityAtIterations={this.state.probabilityAtIterations}

@@ -27,6 +27,16 @@ export function checkGoalCompletion(count: number, goal: ProbabilityGoal) {
     throw new Error(`Unhandled comparator operator: ${goal.comparator!.type}`);
 }
 
+export function checkGoalFailure(count: number, goal: ProbabilityGoal) {
+    const target = goal.targetCount!;
+    switch (goal.comparator!.type) {
+        case ComparisonOperatorType.LessThan: return count >= target;
+        case ComparisonOperatorType.LessOrEquals: return count > target;
+        case ComparisonOperatorType.Equals: return count > target;
+    }
+    return false;
+}
+
 export function groupGoals(probabilities: ProbabilityItem[], goals: ProbabilityGoal[]) {
     const groupedByProbability = groupBy(goals, x => x.item!.id);
     

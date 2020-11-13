@@ -9,8 +9,9 @@ import { Editable } from "../common/Editable";
 
 interface Props {
     totalIterations?: number,
-    maximumErrorRange: number,
     average: number,
+    completionRate: number,
+    failureRate: number
     dataPoints: CalculationDataPoint[],
     probabilityAtIterations?: number,
     iterationsAtProbability?: number,
@@ -40,7 +41,7 @@ export class CalculationResultDisplay extends React.PureComponent<Props, State> 
             return undefined;
         }
         if (this.props.iterationsAtProbability >= this.props.totalIterations) {
-            return `>${(this.props.totalIterations - 1).toLocaleString()}`;
+            return `>= ${(this.props.totalIterations).toLocaleString()}`;
         }
         return this.props.iterationsAtProbability.toLocaleString();
     }
@@ -49,26 +50,50 @@ export class CalculationResultDisplay extends React.PureComponent<Props, State> 
         if (this.props.probabilityAtIterations === undefined) {
             return undefined;
         }
-        if (this.props.probabilityAtIterations > 0.999) {
-            return ">99.9%";
+        const progress = this.props.completionRate + this.props.failureRate;
+        if (this.props.probabilityAtIterations > 0.999 && progress < 1) {
+            return "> 99.9%";
         }
         return (this.props.probabilityAtIterations * 100).toFixed(1) + "%";
     }
     
+    private getProgress() {
+        const completionRate = this.props.completionRate;
+        const failureRate = this.props.failureRate;
+        const progress = completionRate + failureRate;
+        let fractionDigits = 1;
+        if (progress < 1) {
+            for (let i = 3; i < 16; i++) {
+                if (progress > 1 - Math.pow(10, -i)) {
+                    fractionDigits++;
+                }
+            }
+        }
+        return `${(progress * 100).toFixed(fractionDigits)}%`;
+    }
+    
     render() {
+        const average = this.props.completionRate === 0 ? 0 :
+            this.props.average / this.props.completionRate;
         return (
             <div className="calculation-result-display-component">
                 <SpaceContainer className="result-info">
                     <div>
                         <InfoBox
-                            label="Max point error range"
-                            content={`${(this.props.maximumErrorRange * 100).toFixed(4)}%`}
+                            label="Progress"
+                            content={this.getProgress()}
+                        />
+                    </div>
+                    <div>
+                        <InfoBox
+                            label="Probability of completing goal"
+                            content={`${(this.props.completionRate * 100).toFixed(1)}%`}
                         />
                     </div>
                     <div>
                         <InfoBox
                             label="Average iterations per completion"
-                            content={this.props.average.toLocaleString(undefined, {
+                            content={average.toLocaleString(undefined, {
                                 maximumFractionDigits: 2
                             })}
                         />
@@ -123,7 +148,10 @@ export class CalculationResultDisplay extends React.PureComponent<Props, State> 
                 </SpaceContainer>
                 <div className="result-chart">
                     <CumulativeSuccessChart
-                        dataPoints={this.props.dataPoints}
+                        dataPoints={this.props.dataPoints.map(x => ({
+                            completions: x.completions,
+                            probability: this.props.completionRate === 0 ? 0 : x.probability / this.props.completionRate
+                        }))}
                     />
                 </div>
             </div>

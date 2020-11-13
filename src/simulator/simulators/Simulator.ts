@@ -1,7 +1,7 @@
 import { Simulation } from "../../shared/interfaces/simulation/Simulation";
 import { DataSimulationResult, SimulationResultType } from "../../shared/interfaces/simulation/SimulationResult";
 import { runWorkerLoop } from "../../shared/helpers/LoopHelper";
-import { calculateProbabilityArray, checkGoalCompletion, groupGoals } from "../helpers/SimulationHelpers";
+import { calculateProbabilityArray, checkGoalCompletion, checkGoalFailure, groupGoals } from "../helpers/SimulationHelpers";
 import { DynamicInt64Array } from "../../shared/data-structures/DynamicInt64Array";
 import { getTruncatedData } from "../../shared/helpers/CalculationHelper";
 
@@ -10,6 +10,7 @@ export class Simulator {
     private simulation: Simulation;
     private iterations: number;
     private attempts: number;
+    private successfulIterations: number;
     private result: DynamicInt64Array; // TODO: Limit size to maybe 10m to prevent too much memory allocation
     private targetIterationsAtProbability: number;
     private targetProbabilityAtIterations: number;
@@ -20,6 +21,7 @@ export class Simulator {
         this.simulation = simulation;
         this.iterations = 0;
         this.attempts = 0;
+        this.successfulIterations = 0;
         this.result = new DynamicInt64Array();
         this.targetIterationsAtProbability = iterationsAtProbability;
         this.targetProbabilityAtIterations = probabilityAtIterations;
@@ -38,8 +40,9 @@ export class Simulator {
         }
         const groupedGoals = groupGoals(probabilities, goals);
         let attempts = 0;
+        let success = true;
         
-        while (fulfilledGoals < goals.length) {
+        while (success && fulfilledGoals < goals.length) {
             const roll = Math.random();
             let nextCheckBase = 0;
             for (let i = 0; i < probabilities.length; i++) {
@@ -55,6 +58,7 @@ export class Simulator {
                         else if (completedBefore && !completedAfter) {
                             fulfilledGoals--;
                         }
+                        success = success && !checkGoalFailure(counts[i] + 1, goal);
                     }
                     counts[i]++;
                     break;
@@ -65,15 +69,18 @@ export class Simulator {
             attempts++;
         }
         
-        // TODO: Maybe change this at some point to ensure the
-        // array doesn't take up too much space in case
-        // reaching the goal can take very many attempts
-        while (this.result.length <= attempts) {
-            this.result.push(BigInt(0));
-        }
-        this.result.set(attempts, this.result.get(attempts) + BigInt(1));
         this.iterations++;
-        this.attempts += attempts;
+        if (success) {
+            // TODO: Maybe change this at some point to ensure the
+            // array doesn't take up too much space in case
+            // reaching the goal can take very many attempts
+            while (this.result.length <= attempts) {
+                this.result.push(BigInt(0));
+            }
+            this.result.set(attempts, this.result.get(attempts) + BigInt(1));
+            this.attempts += attempts;
+            this.successfulIterations++;
+        }
     }
     
     start() {
@@ -93,7 +100,7 @@ export class Simulator {
         // TODO: This can be slow when this.result is large
         // Probably need some data structure like binary indexed tree to improve speed
         
-        const probabilityArray = calculateProbabilityArray(this.result, this.iterations);
+        const probabilityArray = calculateProbabilityArray(this.result, this.successfulIterations);
         const dataPoints = getTruncatedData(probabilityArray, maxDataPoints, minimumDistance)
             .map(x => ({
                 completions: x.index,
@@ -104,6 +111,7 @@ export class Simulator {
             type: SimulationResultType.DataResult,
             iterations: this.iterations,
             attempts: this.attempts,
+            successfulIterations: this.successfulIterations,
             dataPoints: dataPoints,
             iterationsAtProbability: this.getIterationsAtProbability(),
             probabilityAtIterations: this.getProbabilityAtIterations(),
@@ -121,12 +129,16 @@ export class Simulator {
     }
     
     getProbabilityAtIterations() {
+        if (this.successfulIterations === 0) {
+            return 0;
+        }
+        
         const targetIterations = this.targetProbabilityAtIterations;
         let completions = 0;
         for (let i = 0; i <= Math.min(targetIterations, this.result.length - 1); i++) {
             completions += Number(this.result.get(i));
         }
-        return completions / this.iterations;
+        return completions / this.successfulIterations;
     }
     
     getIterationsAtProbability() {
@@ -135,7 +147,7 @@ export class Simulator {
         let iterations = 0;
         while (iterations < this.result.length) {
             completions += Number(this.result.get(iterations));
-            if (completions / this.iterations >= targetProbability) {
+            if (completions / this.successfulIterations >= targetProbability) {
                 return iterations;
             }
             iterations++;

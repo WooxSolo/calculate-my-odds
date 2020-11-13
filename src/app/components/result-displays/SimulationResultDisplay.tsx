@@ -13,6 +13,7 @@ import { Editable } from "../common/Editable";
 interface Props {
     iterations: number,
     attempts: number,
+    successfulIterations: number,
     probabilityAtIterations?: number,
     iterationsAtProbability?: number,
     highestIteration?: number,
@@ -41,7 +42,8 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
             return undefined;
         }
         if (this.props.iterationsAtProbability === this.props.highestIteration) {
-            return `>${this.props.iterationsAtProbability - 1}`;
+            // TODO: Change >= to an actual &ge; symbol
+            return `>= ${this.props.iterationsAtProbability}`;
         }
         return this.props.iterationsAtProbability.toLocaleString();
     }
@@ -51,14 +53,16 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
             return undefined;
         }
         if (this.props.probabilityAtIterations > 0.999) {
-            return ">99.9%";
+            return "> 99.9%";
         }
         return (this.props.probabilityAtIterations * 100).toFixed(1) + "%";
     }
     
     render() {
-        const average = this.props.iterations === 0 ? undefined :
-            this.props.attempts / this.props.iterations;
+        const average = this.props.successfulIterations === 0 ? undefined :
+            this.props.attempts / this.props.successfulIterations;
+        const successRate = this.props.iterations === 0 ? undefined :
+            this.props.successfulIterations / this.props.iterations;
         return (
             <div className="simulation-result-display-component">
                 <SpaceContainer className="result-info">
@@ -91,6 +95,12 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
                                     </div>
                                 </div>
                             )}
+                        />
+                    </div>
+                    <div>
+                        <InfoBox
+                            label="Probability of completing goal"
+                            content={successRate === undefined ? undefined : `${(successRate * 100).toFixed(1)}%`}
                         />
                     </div>
                     <div>

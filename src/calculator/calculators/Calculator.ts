@@ -5,9 +5,10 @@ import { ComparisonOperatorType } from "../../shared/interfaces/Compators";
 import { ProbabilityGoal } from "../../shared/interfaces/Goals";
 import { ProbabilityItem } from "../../shared/interfaces/Probability";
 import { runWorkerLoop } from "../../shared/helpers/LoopHelper";
-import { checkGoalCompletion, groupGoals } from "../../simulator/helpers/SimulationHelpers";
+import { checkGoalCompletion, checkGoalFailure, groupGoals } from "../../simulator/helpers/SimulationHelpers";
 import { DynamicFloat64Array } from "../../shared/data-structures/DynamicFloat64Array";
 import { getTruncatedDataDynamic } from "../../shared/helpers/CalculationHelper";
+import { debug } from "webpack";
 
 type State = Int32Array
 
@@ -19,7 +20,7 @@ function serializeState(state: State) {
     return state.join(",");
 }
 
-function checkComplation(state: State, groupedGoals: ProbabilityGoal[][]) {
+function checkCompletion(state: State, groupedGoals: ProbabilityGoal[][]) {
     for (let i = 0; i < state.length; i++) {
         for (const goal of groupedGoals[i]) {
             if (!checkGoalCompletion(state[i], goal)) {
@@ -30,13 +31,25 @@ function checkComplation(state: State, groupedGoals: ProbabilityGoal[][]) {
     return true;
 }
 
+function checkFailure(state: State, groupedGoals: ProbabilityGoal[][]) {
+    for (let i = 0; i < state.length; i++) {
+        for (const goal of groupedGoals[i]) {
+            if (checkGoalFailure(state[i], goal)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 export class Calculator {
     private calculation: Calculation;
     private isRunning: boolean;
     private resultArray: DynamicFloat64Array;
     private lastStates: Map<string, number>;
-    private maximumErrorRange: number;
     private average: number;
+    private completionRate: number;
+    private failureRate: number;
     private onCompletion?: () => void;
     private targetIterationsAtProbability: number;
     private targetProbabilityAtIterations: number;
@@ -49,24 +62,12 @@ export class Calculator {
         this.calculation = calculation;
         this.resultArray = new DynamicFloat64Array();
         this.lastStates = new Map<string, number>();
-        this.maximumErrorRange = 1;
         this.average = 0;
+        this.completionRate = 0;
+        this.failureRate = 0;
         this.targetIterationsAtProbability = iterationsAtProbability;
         this.targetProbabilityAtIterations = probabilityAtIterations;
         this.onCompletion = onCompletion;
-    }
-    
-    private calculateCompletionProbability(groupedGoals: ProbabilityGoal[][]) {
-        const states = this.lastStates;
-        
-        let completionProbability = 0;
-        for (const stateEntry of states) {
-            if (checkComplation(parseState(stateEntry[0]), groupedGoals)) {
-                completionProbability += stateEntry[1];
-            }
-        }
-        
-        return completionProbability;
     }
     
     private nextStateCalculation(probabilities: ProbabilityItem[], maxCounts: Int32Array) {
@@ -84,16 +85,40 @@ export class Calculator {
                 const serializedState = serializeState(nextState);
                 const prevProbability = nextStates.get(serializedState) ?? 0;
                 const nextProbability = stateEntry[1] * item.probability!;
-                nextStates.set(serializedState, prevProbability + nextProbability);
+                if (prevProbability + nextProbability > 0) {
+                    nextStates.set(serializedState, prevProbability + nextProbability);
+                }
             }
             
             const nothingProbability = 1 - probabilities.reduce((a, b) => a + b.probability!, 0);
             const prevNothingProbability = nextStates.get(stateEntry[0]) ?? 0;
             const nextNothingProbability = stateEntry[1] * nothingProbability;
-            nextStates.set(stateEntry[0], prevNothingProbability + nextNothingProbability);
+            if (prevNothingProbability + nextNothingProbability > 0) {
+                nextStates.set(stateEntry[0], prevNothingProbability + nextNothingProbability);
+            }
         }
         
         this.lastStates = nextStates;
+    }
+    
+    private updateCompletionRate(groupedGoals: ProbabilityGoal[][]) {
+        for (const stateEntry of this.lastStates) {
+            if (checkCompletion(parseState(stateEntry[0]), groupedGoals)) {
+                this.completionRate += stateEntry[1];
+                this.lastStates.delete(stateEntry[0]);
+            }
+        }
+        this.resultArray.push(this.completionRate);
+    }
+    
+    private updateFailureRate(groupedGoals: ProbabilityGoal[][]) {
+        for (const stateEntry of this.lastStates) {
+            const state = parseState(stateEntry[0]);
+            if (checkFailure(state, groupedGoals)) {
+                this.failureRate += stateEntry[1];
+                this.lastStates.delete(stateEntry[0]);
+            }
+        }
     }
     
     private updateAverage() {
@@ -101,7 +126,9 @@ export class Calculator {
             return;
         }
         
-        const probability = this.resultArray.get(this.resultArray.length - 1) - this.resultArray.get(this.resultArray.length - 2);
+        const v1 = this.resultArray.get(this.resultArray.length - 1);
+        const v2 = this.resultArray.get(this.resultArray.length - 2);
+        const probability = v1 - v2;
         this.average += probability * (this.resultArray.length - 1);
     }
     
@@ -114,20 +141,17 @@ export class Calculator {
         for (let i = 0; i < groupedGoals.length; i++) {
             for (const goal of groupedGoals[i]) {
                 switch (goal.comparator.type) {
-                    case ComparisonOperatorType.GreaterOrEquals: {
+                    case ComparisonOperatorType.GreaterOrEquals:
+                    case ComparisonOperatorType.LessThan: {
                         maxCounts[i] = Math.max(maxCounts[i], goal.targetCount!);
                         break;
                     }
-                    case ComparisonOperatorType.GreaterThan: {
+                    case ComparisonOperatorType.GreaterThan:
+                    case ComparisonOperatorType.NotEquals:
+                    case ComparisonOperatorType.Equals:
+                    case ComparisonOperatorType.LessOrEquals: {
                         maxCounts[i] = Math.max(maxCounts[i], goal.targetCount! + 1);
                         break;
-                    }
-                    case ComparisonOperatorType.Equals:
-                    case ComparisonOperatorType.NotEquals:
-                    case ComparisonOperatorType.LessThan:
-                    case ComparisonOperatorType.LessOrEquals: {
-                        // TODO: Implement these
-                        throw new Error();
                     }
                 }
             }
@@ -139,17 +163,18 @@ export class Calculator {
         }
         
         runWorkerLoop(() => {
-            const completionProbability = this.calculateCompletionProbability(groupedGoals);
-            this.resultArray.push(completionProbability);
-            this.maximumErrorRange = 1 - completionProbability;
+            this.updateFailureRate(groupedGoals);
+            this.updateCompletionRate(groupedGoals);
             this.updateAverage();
 
             // TODO: Change 0.999999 to be a constant and make it closer to 1
-            if (completionProbability >= 0.999999) {
+            if (this.completionRate + this.failureRate >= 0.999999) {
                 this.onCompletion?.();
                 return false;
             }
             
+            // TODO: Maybe move this to the top of the function, but don't
+            // run it on first iteration
             this.nextStateCalculation(probabilities, maxCounts);
             
             return this.isRunning;
@@ -169,8 +194,9 @@ export class Calculator {
         const result: DataCalculationResult = {
             type: CalculationResultType.DataResult,
             totalIterations: this.resultArray.length,
-            maximumErrorRange: this.maximumErrorRange,
-            average: this.average + this.maximumErrorRange * this.resultArray.length,
+            average: this.average,
+            completionRate: this.completionRate,
+            failureRate: this.failureRate,
             dataPoints: dataPoints,
             iterationsAtProbability: this.getIterationsAtProbability(),
             probabilityAtIterations: this.getProbabilityAtIterations()
@@ -187,6 +213,10 @@ export class Calculator {
     }
     
     getProbabilityAtIterations() {
+        if (this.completionRate === 0) {
+            return 0;
+        }
+        
         const targetIterations = this.targetProbabilityAtIterations;
         if (targetIterations < 0) {
             return 0;
@@ -194,16 +224,20 @@ export class Calculator {
         if (targetIterations >= this.resultArray.length) {
             return 1;
         }
-        return this.resultArray.get(targetIterations);
+        return this.resultArray.get(targetIterations) / this.completionRate;
     }
     
     getIterationsAtProbability() {
-        const targetProbability = this.targetIterationsAtProbability;
-        if (targetProbability <= 0) {
-            return 0;
+        if (this.completionRate === 0) {
+            return undefined;
         }
-        if (targetProbability >= 100) {
-            return this.resultArray.length;
+        
+        const targetProbability = this.targetIterationsAtProbability * this.completionRate;
+        if (targetProbability < 0) {
+            return undefined;
+        }
+        if (this.targetIterationsAtProbability > 1) {
+            return undefined;
         }
         
         let low = 0;
