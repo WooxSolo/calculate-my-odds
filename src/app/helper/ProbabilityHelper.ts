@@ -1,9 +1,13 @@
 
-// TODO: Allow parsing of e.g. ".2"
-
 function parseFraction(probabilityString: string) {
-    const match = probabilityString.match(/^\s*(\d+(?:[,.]\d*)?)\s*\/\s*(\d+(?:[,.]\d*)?)\s*$/);
+    const match = probabilityString.match(/^\s*(\d*(?:[,.]\d*)?)\s*\/\s*(\d*(?:[,.]\d*)?)\s*$/);
     if (!match) {
+        return undefined;
+    }
+    if (!/\d/.test(match[1])) {
+        return undefined;
+    }
+    if (!/\d/.test(match[2])) {
         return undefined;
     }
     
@@ -21,8 +25,11 @@ function parseFraction(probabilityString: string) {
 }
 
 function parsePercentage(probabilityString: string) {
-    const match = probabilityString.match(/^\s*(\d+(?:[,.]\d*)?)\s*%\s*$/);
+    const match = probabilityString.match(/^\s*(\d*(?:[,.]\d*)?)\s*%\s*$/);
     if (!match) {
+        return undefined;
+    }
+    if (!/\d/.test(match[1])) {
         return undefined;
     }
     
@@ -34,8 +41,11 @@ function parsePercentage(probabilityString: string) {
 }
 
 function parseValue(probabilityString: string) {
-    const match = probabilityString.match(/^\s*(\d+(?:[,.]\d*)?)\s*$/);
+    const match = probabilityString.match(/^\s*(\d*(?:[,.]\d*)?)\s*$/);
     if (!match) {
+        return undefined;
+    }
+    if (!/\d/.test(match[1])) {
         return undefined;
     }
     
