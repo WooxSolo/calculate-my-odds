@@ -1,4 +1,4 @@
-import { CalculationMainEventTypes, FinishedCalculationEvent, ReceivedResultCalculationEvent } from "../shared/interfaces/calculator/CalculationMainEvents";
+import { CalculationMainEventTypes, FinishedCalculationEvent, ReceivedResultCalculationEvent, ReceivedIterationsAtProbabilityCalculationEvent, ReceivedProbabilityAtIterationsCalculationEvent } from "../shared/interfaces/calculator/CalculationMainEvents";
 import { CalculationWorkerEvent, CalculationWorkerEventType } from "../shared/interfaces/calculator/CalculationWorkerEvents";
 import { Calculator } from "./calculators/Calculator";
 
@@ -13,12 +13,15 @@ ctx.onmessage = (event: MessageEvent<CalculationWorkerEvent>) => {
             currentCalculator.destroy();
         }
         
-        currentCalculator = new Calculator(data.calculation, () => {
-            const message: FinishedCalculationEvent = {
-                type: CalculationMainEventTypes.FinishedCalculation
-            };
-            ctx.postMessage(message);
-        });
+        currentCalculator = new Calculator(data.calculation,
+            data.initialIterationsAtProbability,
+            data.initialProbabilityAtIterations,
+            () => {
+                const message: FinishedCalculationEvent = {
+                    type: CalculationMainEventTypes.FinishedCalculation
+                };
+                ctx.postMessage(message);
+            });
         currentCalculator.start();
     }
     else if (data.type === CalculationWorkerEventType.PauseCalculation) {
@@ -36,7 +39,30 @@ ctx.onmessage = (event: MessageEvent<CalculationWorkerEvent>) => {
             const result = currentCalculator.getResult(data.maxDataPoints, data.minimumDistance);
             const message: ReceivedResultCalculationEvent = {
                 type: CalculationMainEventTypes.ReceivedResult,
+                requestId: data.requestId,
                 result: result
+            };
+            ctx.postMessage(message);
+        }
+    }
+    else if (data.type === CalculationWorkerEventType.RequestProbabilityAtIterations) {
+        if (currentCalculator) {
+            currentCalculator.updateProbabilityAtIterationsTarget(data.iterations);
+            const result = currentCalculator.getProbabilityAtIterations();
+            const message: ReceivedProbabilityAtIterationsCalculationEvent = {
+                type: CalculationMainEventTypes.ReceivedProbabilityAtIterations,
+                probability: result
+            };
+            ctx.postMessage(message);
+        }
+    }
+    else if (data.type === CalculationWorkerEventType.RequestIterationsAtProbability) {
+        if (currentCalculator) {
+            currentCalculator.updateIterationsAtProbabilityTarget(data.probability);
+            const result = currentCalculator.getIterationsAtProbability();
+            const message: ReceivedIterationsAtProbabilityCalculationEvent = {
+                type: CalculationMainEventTypes.ReceivedIterationsAtProbability,
+                iterations: result
             };
             ctx.postMessage(message);
         }

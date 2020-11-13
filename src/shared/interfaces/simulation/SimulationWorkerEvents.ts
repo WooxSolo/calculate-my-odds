@@ -6,12 +6,16 @@ export enum SimulationWorkerEventType {
     ResumeSimulation = "RESUME_SIMULATION",
     CancelSimulation = "CANCEL_SIMULATION",
     RequestSimpleResult = "REQUEST_SIMPLE_RESULT",
-    RequestDataResult = "REQUEST_DATA_RESULT"
+    RequestDataResult = "REQUEST_DATA_RESULT",
+    RequestProbabilityAtIterations = "REQUEST_PROBABILITY_AT_ITERATIONS",
+    RequestIterationsAtProbability = "REQUEST_ITERATIONS_AT_PROBABILITY"
 }
 
 export interface StartSimulationEvent {
     type: SimulationWorkerEventType.StartSimulation,
-    simulation: Simulation
+    simulation: Simulation,
+    initialProbabilityAtIterations: number,
+    initialIterationsAtProbability: number
 }
 
 export interface PauseSimulationEvent {
@@ -32,8 +36,19 @@ export interface RequestSimpleResultSimulationEvent {
 
 export interface RequestDataResultSimulationEvent {
     type: SimulationWorkerEventType.RequestDataResult,
+    requestId: number,
     maxDataPoints: number,
     minimumDistance?: number
+}
+
+export interface RequestProbabilityAtIterations {
+    type: SimulationWorkerEventType.RequestProbabilityAtIterations,
+    iterations: number
+}
+
+export interface RequestIterationsAtProbability {
+    type: SimulationWorkerEventType.RequestIterationsAtProbability,
+    probability: number
 }
 
 export type SimulationWorkerEvent = StartSimulationEvent
@@ -42,3 +57,5 @@ export type SimulationWorkerEvent = StartSimulationEvent
     | CancelSimulationEvent
     | RequestSimpleResultSimulationEvent
     | RequestDataResultSimulationEvent
+    | RequestProbabilityAtIterations
+    | RequestIterationsAtProbability

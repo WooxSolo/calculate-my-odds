@@ -1,0 +1,10 @@
+
+.cumulative-success-chart-component {
+    flex-grow: 1;
+    display: flex;
+    
+    .cumulative-success-chart-canvas {
+        width: 100%;
+        height: 400px;
+    }
+}

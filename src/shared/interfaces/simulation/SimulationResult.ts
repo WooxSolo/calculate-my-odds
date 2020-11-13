@@ -12,7 +12,9 @@ export interface DataSimulationResult {
     type: SimulationResultType.DataResult,
     iterations: number,
     attempts: number,
-    dataPoints: SimulationDataPoint[]
+    dataPoints: SimulationDataPoint[],
+    iterationsAtProbability: number,
+    probabilityAtIterations: number
 }
 
 export type SimulationResult = DataSimulationResult

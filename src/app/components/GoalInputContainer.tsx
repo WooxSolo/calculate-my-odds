@@ -29,11 +29,25 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
         };
     }
     
+    componentDidUpdate(prevProps: Props) {
+        if (this.props.probabilities !== prevProps.probabilities) {
+            const itemMap = new Map<string, ProbabilityItem>(
+                this.props.probabilities.map(x => [x.id, x]));
+            const goals = this.state.goals.filter(x =>
+                x.item === undefined || itemMap.has(x.item.id));
+            goals.forEach(x => x.item = x.item === undefined ? undefined : itemMap.get(x.item?.id));
+            this.setState({
+                goals: goals
+            });
+        }
+    }
+    
     private addNewGoal() {
         const newGoal: ProbabilityGoal = {
             type: "PROBABILITY_GOAL",
             id: nextUniqueId().toString(),
-            comparator: comparisonOperators.find(x => x.type === ComparisonOperatorType.GreaterOrEquals)!
+            comparator: comparisonOperators.find(x => x.type === ComparisonOperatorType.GreaterOrEquals)!,
+            targetCount: 1
         };
         const newGoals = [...this.state.goals, newGoal];
         

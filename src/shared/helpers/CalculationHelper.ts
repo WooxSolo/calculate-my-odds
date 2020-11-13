@@ -17,18 +17,10 @@ export function getTruncatedDataDynamic(array: DynamicFloat64Array, maxDataPoint
         }
     }
     
-    return array.getTruncatedArray(maxDataPoints, highIndex + 1);
+    return array.getTruncatedArray(maxDataPoints, highIndex);
 }
 
 export function getTruncatedData(array: Float64Array, maxDataPoints: number, minimumDistance?: number) {
-    if (maxDataPoints <= 0) {
-        return [];
-    }
-    if (maxDataPoints === 1) {
-        // TODO
-        throw new Error();
-    }
-    
     let highIndex = array.length - 1;
     if (minimumDistance !== undefined) {
         while (highIndex > 1 && array[highIndex - 1] >= 1 - minimumDistance) {

@@ -17,9 +17,12 @@ export interface CalculationDataPoint {
 
 export interface DataCalculationResult {
     type: CalculationResultType.DataResult,
+    totalIterations: number,
     maximumErrorRange: number,
     average: number,
-    dataPoints: CalculationDataPoint[]
+    dataPoints: CalculationDataPoint[],
+    iterationsAtProbability: number,
+    probabilityAtIterations: number
 }
 
 export type CalculationResult = DataCalculationResult

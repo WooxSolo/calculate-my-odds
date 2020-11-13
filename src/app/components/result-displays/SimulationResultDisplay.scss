@@ -1,5 +1,6 @@
 
 .simulation-result-display-component {
+    flex-grow: 1;
     display: flex;
     
     .result-info {
@@ -11,6 +12,8 @@
     .result-chart {
         flex-basis: 0;
         flex-grow: 1;
+        display: flex;
+        flex-direction: column;
     }
     
     .iterations-content-container {

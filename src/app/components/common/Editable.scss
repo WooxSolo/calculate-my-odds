@@ -1,0 +1,22 @@
+
+.editable-component {
+    color: #FFFFFF;
+    padding: 0 0.0em;
+    border-bottom: 2px dotted #ffffff;
+    font-weight: bold;
+    margin: 0 0.1em;
+    font-size: 1.15em;
+    white-space: nowrap;
+    position: relative;
+    display: inline-block;
+    transition: border-color 0.2s ease-out,
+        color 0.2s ease-out;
+    
+    .editable-input {
+        min-width: 10px;
+        height: 1em;
+        display: inline-block;
+        line-height: 1em;
+        cursor: text;
+    }
+}

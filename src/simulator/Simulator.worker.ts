@@ -1,6 +1,6 @@
 import { Simulator } from "./simulators/Simulator";
 import { SimulationWorkerEvent, SimulationWorkerEventType } from "../shared/interfaces/simulation/SimulationWorkerEvents";
-import { ReceivedResultSimulationEvent, SimulationMainEventTypes } from "../shared/interfaces/simulation/SimulationMainEvents";
+import { ReceivedIterationsAtProbabilityEvent, ReceivedProbabilityAtIterationsEvent, ReceivedResultSimulationEvent, SimulationMainEventTypes } from "../shared/interfaces/simulation/SimulationMainEvents";
 
 const ctx: Worker = self as any;
 
@@ -13,7 +13,9 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
             currentSimulator.destroy();
         }
         
-        currentSimulator = new Simulator(data.simulation);
+        currentSimulator = new Simulator(data.simulation,
+            data.initialIterationsAtProbability,
+            data.initialProbabilityAtIterations);
         currentSimulator.start();
     }
     else if (data.type === SimulationWorkerEventType.PauseSimulation) {
@@ -31,7 +33,30 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
             const result = currentSimulator.getResult(data.maxDataPoints, data.minimumDistance);
             const message: ReceivedResultSimulationEvent = {
                 type: SimulationMainEventTypes.ReceivedResult,
+                requestId: data.requestId,
                 result: result
+            };
+            ctx.postMessage(message);
+        }
+    }
+    else if (data.type === SimulationWorkerEventType.RequestProbabilityAtIterations) {
+        if (currentSimulator) {
+            currentSimulator.updateProbabilityAtIterationsTarget(data.iterations);
+            const result = currentSimulator.getProbabilityAtIterations();
+            const message: ReceivedProbabilityAtIterationsEvent = {
+                type: SimulationMainEventTypes.ReceivedProbabilityAtIterations,
+                probability: result
+            };
+            ctx.postMessage(message);
+        }
+    }
+    else if (data.type === SimulationWorkerEventType.RequestIterationsAtProbability) {
+        if (currentSimulator) {
+            currentSimulator.updateIterationsAtProbabilityTarget(data.probability);
+            const result = currentSimulator.getIterationsAtProbability();
+            const message: ReceivedIterationsAtProbabilityEvent = {
+                type: SimulationMainEventTypes.ReceivedIterationsAtProbability,
+                iterations: result
             };
             ctx.postMessage(message);
         }

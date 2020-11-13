@@ -9,14 +9,15 @@ import { Select } from "./common/Select";
 import SimulatorWorker from "worker-loader!../../simulator/Simulator.worker";
 import CalculationWorker from "worker-loader!../../calculator/Calculator.worker";
 import { SimulationResult, SimulationResultType } from "../../shared/interfaces/simulation/SimulationResult";
-import { ReceivedResultSimulationEvent, SimulationMainEvent, SimulationMainEventTypes } from "../../shared/interfaces/simulation/SimulationMainEvents";
-import { RequestDataResultSimulationEvent, RequestSimpleResultSimulationEvent, SimulationWorkerEventType, StartSimulationEvent, PauseSimulationEvent, ResumeSimulationEvent, CancelSimulationEvent } from "../../shared/interfaces/simulation/SimulationWorkerEvents";
+import { SimulationMainEvent, SimulationMainEventTypes } from "../../shared/interfaces/simulation/SimulationMainEvents";
+import { RequestDataResultSimulationEvent, SimulationWorkerEventType, StartSimulationEvent, PauseSimulationEvent, ResumeSimulationEvent, CancelSimulationEvent, RequestProbabilityAtIterations, RequestIterationsAtProbability } from "../../shared/interfaces/simulation/SimulationWorkerEvents";
 import { CalculationMainEvent, CalculationMainEventTypes } from "../../shared/interfaces/calculator/CalculationMainEvents";
 import { CalculationResult, CalculationResultType } from "../../shared/interfaces/calculator/CalculationResult";
 import { CalculationWorkerEventType, RequestDataResultCalculationEvent, StartCalculationEvent, PauseCalculationEvent, ResumeCalculationEvent, CancelCalculationEvent } from "../../shared/interfaces/calculator/CalculationWorkerEvents";
 import { SimulationResultDisplay } from "./result-displays/SimulationResultDisplay";
 import { CalculationResultDisplay } from "./result-displays/CalculationResultDisplay";
 import { SpaceContainer } from "./common/SpaceContainer";
+import { nextUniqueId } from "../helper/IdHelpers";
 
 interface Props {
     probabilities: ProbabilityItem[],
@@ -28,20 +29,23 @@ interface State {
     // TODO: Merge SimulationResult and CalculationResult into one type
     simulationResult?: SimulationResult,
     calculationResult?: CalculationResult,
-    isRunning: boolean
+    isRunning: boolean,
+    totalCalculationIterations?: number,
+    probabilityAtIterations?: number,
+    iterationsAtProbability?: number
 }
 
 export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     // TODO: Merge simulationWorker and calculationWorker into one worker
+    // or maybe move them into the SimulationResultDisplay/CalculationResultDisplay
     private simulationWorker: SimulatorWorker;
     private calculationWorker: CalculationWorker;
-    private acceptingResults: boolean;
+    private awaitingResultId?: number;
     private cancelFunc?: () => void;
     
     constructor(props: Props) {
         super(props);
         
-        this.acceptingResults = false;
         this.simulationWorker = new SimulatorWorker();
         this.calculationWorker = new CalculationWorker();
         
@@ -60,11 +64,24 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         this.simulationWorker.onmessage = (e: MessageEvent<SimulationMainEvent>) => {
             const data = e.data;
             if (data.type === SimulationMainEventTypes.ReceivedResult) {
-                if (this.acceptingResults && data.result) {
+                if (data.requestId === this.awaitingResultId && data.result) {
                     this.setState({
-                        simulationResult: data.result
+                        simulationResult: data.result,
+                        probabilityAtIterations: data.result.probabilityAtIterations,
+                        iterationsAtProbability: data.result.iterationsAtProbability
                     });
+                    this.awaitingResultId = undefined;
                 }
+            }
+            else if (data.type === SimulationMainEventTypes.ReceivedIterationsAtProbability) {
+                this.setState({
+                    iterationsAtProbability: data.iterations
+                });
+            }
+            else if (data.type === SimulationMainEventTypes.ReceivedProbabilityAtIterations) {
+                this.setState({
+                    probabilityAtIterations: data.probability
+                })
             }
         };
     }
@@ -73,11 +90,25 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         this.calculationWorker.onmessage = (e: MessageEvent<CalculationMainEvent>) => {
             const data = e.data;
             if (data.type === CalculationMainEventTypes.ReceivedResult) {
-                if (this.acceptingResults && data.result) {
+                if (data.requestId === this.awaitingResultId && data.result) {
                     this.setState({
-                        calculationResult: data.result
+                        calculationResult: data.result,
+                        totalCalculationIterations: data.result.totalIterations,
+                        iterationsAtProbability: data.result.iterationsAtProbability,
+                        probabilityAtIterations: data.result.probabilityAtIterations
                     });
+                    this.awaitingResultId = undefined;
                 }
+            }
+            else if (data.type === CalculationMainEventTypes.ReceivedIterationsAtProbability) {
+                this.setState({
+                    iterationsAtProbability: data.iterations
+                });
+            }
+            else if (data.type === CalculationMainEventTypes.ReceivedProbabilityAtIterations) {
+                this.setState({
+                    probabilityAtIterations: data.probability
+                })
             }
             else if (data.type === CalculationMainEventTypes.FinishedCalculation) {
                 this.cancelRunningCalculation();
@@ -103,11 +134,12 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
             simulation: {
                 probabilities: this.props.probabilities,
                 goals: this.props.goals
-            }
+            },
+            initialIterationsAtProbability: 0.5,
+            initialProbabilityAtIterations: 73
         };
         worker.postMessage(startMessage);
         
-        this.acceptingResults = true;
         await this.setState({
             isRunning: true,
             simulationResult: undefined,
@@ -115,6 +147,21 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         });
         
         this.startRequestingSimulationResult();
+    }
+    
+    private requestSimulationResult() {
+        if (this.awaitingResultId) {
+            return;
+        }
+        
+        this.awaitingResultId = nextUniqueId();
+        const message: RequestDataResultSimulationEvent = {
+            type: SimulationWorkerEventType.RequestDataResult,
+            requestId: this.awaitingResultId,
+            maxDataPoints: 50,
+            minimumDistance: 0.01
+        };
+        this.simulationWorker.postMessage(message);
     }
     
     private startRequestingSimulationResult() {
@@ -130,12 +177,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         const requestResult = () => {
             if (finished) return;
             
-            const message: RequestDataResultSimulationEvent = {
-                type: SimulationWorkerEventType.RequestDataResult,
-                maxDataPoints: 50,
-                minimumDistance: 0.01
-            };
-            this.simulationWorker.postMessage(message);
+            this.requestSimulationResult();
             
             if (this.state.isRunning) {
                 requestAnimationFrame(requestResult);
@@ -152,13 +194,15 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
             calculation: {
                 probabilities: this.props.probabilities,
                 goals: this.props.goals
-            }
+            },
+            initialIterationsAtProbability: 0.5,
+            initialProbabilityAtIterations: 73
         };
         worker.postMessage(startMessage);
         
-        this.acceptingResults = true;
         await this.setState({
             isRunning: true,
+            totalCalculationIterations: 0,
             calculationResult: undefined,
             simulationResult: undefined
         });
@@ -167,8 +211,14 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     }
     
     private requestCalculationResult() {
+        if (this.awaitingResultId) {
+            return;
+        }
+        
+        this.awaitingResultId = nextUniqueId();
         const message: RequestDataResultCalculationEvent = {
             type: CalculationWorkerEventType.RequestDataResult,
+            requestId: this.awaitingResultId,
             maxDataPoints: 50,
             minimumDistance: 0.01
         };
@@ -230,6 +280,8 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     }
     
     private pauseSimulation() {
+        this.awaitingResultId = undefined;
+        
         if (this.simulationWorker) {
             const message: PauseSimulationEvent = {
                 type: SimulationWorkerEventType.PauseSimulation
@@ -249,7 +301,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     }
     
     private clearResult() {
-        this.acceptingResults = false;
+        this.awaitingResultId = undefined;
         this.cancelRunningCalculation();
         
         this.setState({
@@ -259,24 +311,54 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         });
     }
     
-    render() {
+    private getStartButtonText() {
+        if (this.state.calculationMethod.type === CalculationMethodType.Simulation) {
+            return "Simulate";
+        }
+        if (this.state.calculationMethod.type === CalculationMethodType.Calculation) {
+            return "Calculate";
+        }
+        throw new Error();
+    }
+    
+    render() {        
         return (
             <div className="result-display-container-component">
-                <>
+                {(this.state.calculationResult || this.state.simulationResult) &&
+                <div className="result-display-result">
+                    {/*
+                    TODO: Probably reuse some code in calculator display and simulation display
+                    instead of both having rather similar code
+                    */}
+                    
                     {this.state.simulationResult &&
                     <>
                         {this.state.simulationResult.type === SimulationResultType.DataResult ?
-                        <div>
-                            <SimulationResultDisplay
-                                iterations={this.state.simulationResult.iterations}
-                                attempts={this.state.simulationResult.attempts}
-                                dataPoints={this.state.simulationResult.dataPoints}
-                                isSimulationRunning={this.state.isRunning}
-                                onRequestPlay={() => this.resumeSimulation()}
-                                onRequestPause={() => this.pauseSimulation()}
-                                onRequestNewCalculation={() => this.clearResult()}
-                            />
-                        </div>
+                        <SimulationResultDisplay
+                            iterations={this.state.simulationResult.iterations}
+                            attempts={this.state.simulationResult.attempts}
+                            iterationsAtProbability={this.state.iterationsAtProbability}
+                            probabilityAtIterations={this.state.probabilityAtIterations}
+                            dataPoints={this.state.simulationResult.dataPoints}
+                            isSimulationRunning={this.state.isRunning}
+                            onRequestPlay={() => this.resumeSimulation()}
+                            onRequestPause={() => this.pauseSimulation()}
+                            onRequestNewCalculation={() => this.clearResult()}
+                            onRequestIterationsAtProbability={probability => {
+                                const message: RequestIterationsAtProbability = {
+                                    type: SimulationWorkerEventType.RequestIterationsAtProbability,
+                                    probability: probability
+                                };
+                                this.simulationWorker.postMessage(message);
+                            }}
+                            onRequestProbabilityAtIterations={iterations => {
+                                const message: RequestProbabilityAtIterations = {
+                                    type: SimulationWorkerEventType.RequestProbabilityAtIterations,
+                                    iterations: iterations
+                                };
+                                this.simulationWorker.postMessage(message);
+                            }}
+                        />
                         : null
                         }
                     </>
@@ -287,20 +369,38 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                         {this.state.calculationResult.type === CalculationResultType.DataResult ?
                         <div>
                             <CalculationResultDisplay
+                                totalIterations={this.state.totalCalculationIterations}
                                 maximumErrorRange={this.state.calculationResult.maximumErrorRange}
                                 average={this.state.calculationResult.average}
                                 dataPoints={this.state.calculationResult.dataPoints}
+                                iterationsAtProbability={this.state.iterationsAtProbability}
+                                probabilityAtIterations={this.state.probabilityAtIterations}
                                 onRequestNewCalculation={() => this.clearResult()}
+                                onRequestIterationsAtProbability={probability => {
+                                    const message: RequestIterationsAtProbability = {
+                                        type: SimulationWorkerEventType.RequestIterationsAtProbability,
+                                        probability: probability
+                                    };
+                                    this.calculationWorker.postMessage(message);
+                                }}
+                                onRequestProbabilityAtIterations={iterations => {
+                                    const message: RequestProbabilityAtIterations = {
+                                        type: SimulationWorkerEventType.RequestProbabilityAtIterations,
+                                        iterations: iterations
+                                    };
+                                    this.calculationWorker.postMessage(message);
+                                }}
                             />
                         </div>
                         : null
                         }
                     </>
                     }
-                </>
+                </div>
+                }
                 
                 {(!this.state.simulationResult && !this.state.calculationResult) &&
-                <SpaceContainer>
+                <SpaceContainer className="result-display-start-container">
                     <div>
                         <label>Method</label>
                         <Select
@@ -312,9 +412,9 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                             width="14em"
                         />
                     </div>
-                    <div>
+                    <div className="result-display-button-container">
                         <Button
-                            content="Calculate"
+                            content={this.getStartButtonText()}
                             onClick={this.calculateResult}
                             size={ButtonSize.Large}
                         />

@@ -10,12 +10,12 @@ export function toMaximumFraction(value: number, maxFractionDigits: number) {
     return Math.round(value * mul) / mul;
 }
 
-export function abbreviateValue(value: number, alwaysShowFraction?: boolean) {
+export function abbreviateValue(value: number, alwaysShowFraction?: boolean, isInteger?: boolean) {
     const toFixedFunc = alwaysShowFraction ?
         (value: number) => value.toFixed(1) :
         (value: number) => toMaximumFraction(value, 1).toString();
     if (value < 1000) {
-        return `${toFixedFunc(value)}`;
+        return isInteger ? value.toString() : `${toFixedFunc(value)}`;
     }
     if (value < 1000000) {
         return `${toFixedFunc(value / 1000)}K`;

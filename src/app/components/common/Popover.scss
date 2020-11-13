@@ -1,0 +1,16 @@
+
+.popover-component {
+    position: absolute;
+    background: #1f1f23;
+    border: 1px solid #151515;
+    box-shadow: 0 0 0.7em 0.1em #000000;
+    padding: 0.5em;
+    cursor: default;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    .popover-content {
+        
+    }
+}

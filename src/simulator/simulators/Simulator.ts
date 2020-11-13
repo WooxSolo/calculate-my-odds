@@ -10,14 +10,19 @@ export class Simulator {
     private simulation: Simulation;
     private iterations: number;
     private attempts: number;
-    private result: DynamicInt64Array;
+    private result: DynamicInt64Array; // TODO: Limit size to maybe 10m to prevent too much memory allocation
+    private targetIterationsAtProbability: number;
+    private targetProbabilityAtIterations: number;
     
-    constructor(simulation: Simulation) {
+    constructor(simulation: Simulation, iterationsAtProbability: number,
+            probabilityAtIterations: number) {
         this.isRunning = false;
         this.simulation = simulation;
         this.iterations = 0;
         this.attempts = 0;
         this.result = new DynamicInt64Array();
+        this.targetIterationsAtProbability = iterationsAtProbability;
+        this.targetProbabilityAtIterations = probabilityAtIterations;
     }
     
     private simulateRound() {
@@ -48,8 +53,7 @@ export class Simulator {
                             fulfilledGoals++;
                         }
                         else if (completedBefore && !completedAfter) {
-                            // TODO: Notify that the simulation will never finish
-                            throw new Error();
+                            fulfilledGoals--;
                         }
                     }
                     counts[i]++;
@@ -86,8 +90,11 @@ export class Simulator {
     }
 
     getResult(maxDataPoints: number, minimumDistance?: number) {
-        const probabiliyArray = calculateProbabilityArray(this.result, this.iterations);
-        const dataPoints = getTruncatedData(probabiliyArray, maxDataPoints, minimumDistance)
+        // TODO: This can be slow when this.result is large
+        // Probably need some data structure like binary indexed tree to improve speed
+        
+        const probabilityArray = calculateProbabilityArray(this.result, this.iterations);
+        const dataPoints = getTruncatedData(probabilityArray, maxDataPoints, minimumDistance)
             .map(x => ({
                 completions: x.index,
                 probability: x.value
@@ -97,9 +104,42 @@ export class Simulator {
             type: SimulationResultType.DataResult,
             iterations: this.iterations,
             attempts: this.attempts,
-            dataPoints: dataPoints
+            dataPoints: dataPoints,
+            iterationsAtProbability: this.getIterationsAtProbability(),
+            probabilityAtIterations: this.getProbabilityAtIterations()
         };
         return result;
+    }
+    
+    updateProbabilityAtIterationsTarget(iterations: number) {
+        this.targetProbabilityAtIterations = iterations;
+    }
+    
+    updateIterationsAtProbabilityTarget(probability: number) {
+        this.targetIterationsAtProbability = probability;
+    }
+    
+    getProbabilityAtIterations() {
+        const targetIterations = this.targetProbabilityAtIterations;
+        let completions = 0;
+        for (let i = 0; i <= Math.min(targetIterations, this.result.length - 1); i++) {
+            completions += Number(this.result.get(i));
+        }
+        return completions / this.iterations;
+    }
+    
+    getIterationsAtProbability() {
+        const targetProbability = this.targetIterationsAtProbability;
+        let completions = 0;
+        let iterations = 0;
+        while (iterations < this.result.length) {
+            completions += Number(this.result.get(iterations));
+            if (completions / this.iterations >= targetProbability) {
+                return iterations;
+            }
+            iterations++;
+        }
+        return iterations;
     }
     
     destroy() {

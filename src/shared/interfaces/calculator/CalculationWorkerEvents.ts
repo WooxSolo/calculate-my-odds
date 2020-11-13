@@ -5,12 +5,16 @@ export enum CalculationWorkerEventType {
     PauseCalculation = "PAUSE_CALCULATION",
     ResumeCalculation = "RESUME_CALCULATION",
     CancelCalculation = "CANCEL_CALCULATION",
-    RequestDataResult = "REQUEST_DATA_RESULT"
+    RequestDataResult = "REQUEST_DATA_RESULT",
+    RequestProbabilityAtIterations = "REQUEST_PROBABILITY_AT_ITERATIONS",
+    RequestIterationsAtProbability = "REQUEST_ITERATIONS_AT_PROBABILITY"
 }
 
 export interface StartCalculationEvent {
     type: CalculationWorkerEventType.StartCalculation,
-    calculation: Calculation
+    calculation: Calculation,
+    initialProbabilityAtIterations: number,
+    initialIterationsAtProbability: number
 }
 
 export interface PauseCalculationEvent {
@@ -27,8 +31,19 @@ export interface CancelCalculationEvent {
 
 export interface RequestDataResultCalculationEvent {
     type: CalculationWorkerEventType.RequestDataResult,
+    requestId: number,
     maxDataPoints: number,
     minimumDistance?: number
+}
+
+export interface RequestProbabilityAtIterations {
+    type: CalculationWorkerEventType.RequestProbabilityAtIterations,
+    iterations: number
+}
+
+export interface RequestIterationsAtProbability {
+    type: CalculationWorkerEventType.RequestIterationsAtProbability,
+    probability: number
 }
 
 export type CalculationWorkerEvent = StartCalculationEvent
@@ -36,3 +51,5 @@ export type CalculationWorkerEvent = StartCalculationEvent
     | ResumeCalculationEvent
     | CancelCalculationEvent
     | RequestDataResultCalculationEvent
+    | RequestProbabilityAtIterations
+    | RequestIterationsAtProbability

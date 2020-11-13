@@ -38,14 +38,21 @@ export class Calculator {
     private maximumErrorRange: number;
     private average: number;
     private onCompletion?: () => void;
+    private targetIterationsAtProbability: number;
+    private targetProbabilityAtIterations: number;
     
-    constructor(calculation: Calculation, onCompletion?: () => void) {
+    constructor(calculation: Calculation,
+            iterationsAtProbability: number,
+            probabilityAtIterations: number,
+            onCompletion?: () => void) {
         this.isRunning = false;
         this.calculation = calculation;
         this.resultArray = new DynamicFloat64Array();
         this.lastStates = new Map<string, number>();
         this.maximumErrorRange = 1;
         this.average = 0;
+        this.targetIterationsAtProbability = iterationsAtProbability;
+        this.targetProbabilityAtIterations = probabilityAtIterations;
         this.onCompletion = onCompletion;
     }
     
@@ -161,11 +168,56 @@ export class Calculator {
             }));
         const result: DataCalculationResult = {
             type: CalculationResultType.DataResult,
+            totalIterations: this.resultArray.length,
             maximumErrorRange: this.maximumErrorRange,
             average: this.average + this.maximumErrorRange * this.resultArray.length,
-            dataPoints: dataPoints
+            dataPoints: dataPoints,
+            iterationsAtProbability: this.getIterationsAtProbability(),
+            probabilityAtIterations: this.getProbabilityAtIterations()
         };
         return result;
+    }
+    
+    updateProbabilityAtIterationsTarget(iterations: number) {
+        this.targetProbabilityAtIterations = iterations;
+    }
+    
+    updateIterationsAtProbabilityTarget(probability: number) {
+        this.targetIterationsAtProbability = probability;
+    }
+    
+    getProbabilityAtIterations() {
+        const targetIterations = this.targetProbabilityAtIterations;
+        if (targetIterations < 0) {
+            return 0;
+        }
+        if (targetIterations >= this.resultArray.length) {
+            return 1;
+        }
+        return this.resultArray.get(targetIterations);
+    }
+    
+    getIterationsAtProbability() {
+        const targetProbability = this.targetIterationsAtProbability;
+        if (targetProbability <= 0) {
+            return 0;
+        }
+        if (targetProbability >= 100) {
+            return this.resultArray.length;
+        }
+        
+        let low = 0;
+        let high = this.resultArray.length - 1;
+        while (low <= high) {
+            const mid = Math.floor((low + high) / 2);
+            if (this.resultArray.get(mid) >= targetProbability) {
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+        return low;
     }
     
     destroy() {
