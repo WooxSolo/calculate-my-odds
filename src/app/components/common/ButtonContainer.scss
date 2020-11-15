@@ -1,0 +1,12 @@
+
+.button-container-component {
+    display: flex;
+    
+    > * {
+        margin-right: 1em;
+        
+        &:last-child {
+            margin-right: 0;
+        }
+    }
+}

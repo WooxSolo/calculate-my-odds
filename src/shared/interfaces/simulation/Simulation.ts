@@ -1,7 +1,7 @@
 import { ProbabilityGoal } from "../Goals";
-import { ProbabilityItem } from "../Probability";
+import { ProbabilityTable } from "../Probability";
 
 export interface Simulation {
-    probabilities: ProbabilityItem[],
+    tables: ProbabilityTable[],
     goals: ProbabilityGoal[]
 }

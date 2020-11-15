@@ -20,7 +20,7 @@ export interface ReceivedProbabilityAtIterationsCalculationEvent {
 
 export interface ReceivedIterationsAtProbabilityCalculationEvent {
     type: CalculationMainEventTypes.ReceivedIterationsAtProbability,
-    iterations: number
+    iterations?: number
 }
 
 export interface FinishedCalculationEvent {

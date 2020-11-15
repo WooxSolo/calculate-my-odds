@@ -1,7 +1,7 @@
 import { groupBy } from "lodash";
 import { ComparisonOperatorType } from "../../shared/interfaces/Compators";
 import { ProbabilityGoal } from "../../shared/interfaces/Goals";
-import { ProbabilityItem } from "../../shared/interfaces/Probability";
+import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
 import { DynamicInt64Array } from "../../shared/data-structures/DynamicInt64Array";
 
 export function calculateProbabilityArray(array: DynamicInt64Array, iterations: number) {
@@ -37,13 +37,18 @@ export function checkGoalFailure(count: number, goal: ProbabilityGoal) {
     return false;
 }
 
-export function groupGoals(probabilities: ProbabilityItem[], goals: ProbabilityGoal[]) {
+export function groupGoals(tables: ProbabilityTable[], goals: ProbabilityGoal[]) {
     const groupedByProbability = groupBy(goals, x => x.item!.id);
     
-    const result: ProbabilityGoal[][] = new Array(probabilities.length);
-    for (let i = 0; i < probabilities.length; i++) {
-        const item = probabilities[i];
-        result[i] = groupedByProbability[item.id] ?? [];
+    const result: ProbabilityGoal[][][] = new Array(tables.length);
+    for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+        const table = tables[tableIndex];
+        const currResult: ProbabilityGoal[][] = new Array(table.items.length);
+        for (let i = 0; i < table.items.length; i++) {
+            const item = table.items[i];
+            currResult[i] = groupedByProbability[item.id] ?? [];
+        }
+        result[tableIndex] = currResult;
     }
     return result;
 }

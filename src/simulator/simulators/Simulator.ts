@@ -4,6 +4,9 @@ import { runWorkerLoop } from "../../shared/helpers/LoopHelper";
 import { calculateProbabilityArray, checkGoalCompletion, checkGoalFailure, groupGoals } from "../helpers/SimulationHelpers";
 import { DynamicInt64Array } from "../../shared/data-structures/DynamicInt64Array";
 import { getTruncatedData } from "../../shared/helpers/CalculationHelper";
+import { uniqBy } from "lodash";
+import { ProbabilityGoal } from "../../shared/interfaces/Goals";
+import { ProbabilityItem } from "../../shared/interfaces/Probability";
 
 export class Simulator {
     private isRunning: boolean;
@@ -27,43 +30,52 @@ export class Simulator {
         this.targetProbabilityAtIterations = probabilityAtIterations;
     }
     
-    private simulateRound() {
-        const probabilities = this.simulation.probabilities;
+    private simulateRound(targetItems: ProbabilityItem[], groupedGoals: ProbabilityGoal[][][], itemToIndexMap: Map<string, number>) {
+        const tables = this.simulation.tables;
         const goals = this.simulation.goals;
         
         let fulfilledGoals = 0;
-        const counts = new Int32Array(probabilities.length);
+        const counts = new Int32Array(targetItems.length);
         for (const goal of goals) {
             if (checkGoalCompletion(0, goal)) {
                 fulfilledGoals++;
             }
         }
-        const groupedGoals = groupGoals(probabilities, goals);
         let attempts = 0;
         let success = true;
         
+        // TODO: Maybe add some function to not have the code below so deeply nested
+        
         while (success && fulfilledGoals < goals.length) {
-            const roll = Math.random();
-            let nextCheckBase = 0;
-            for (let i = 0; i < probabilities.length; i++) {
-                const item = probabilities[i];
-                const check = nextCheckBase + item.probability!;
-                if (roll < check) {
-                    for (const goal of groupedGoals[i]) {
-                        const completedBefore = checkGoalCompletion(counts[i], goal);
-                        const completedAfter = checkGoalCompletion(counts[i] + 1, goal);
-                        if (!completedBefore && completedAfter) {
-                            fulfilledGoals++;
+            for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
+                const table = tables[tableIndex];
+                for (let rollNum = 0; rollNum < table.rollsPerIteration; rollNum++) {
+                    const roll = Math.random();
+                    let nextCheckBase = 0;
+                    for (let i = 0; i < table.items.length; i++) {
+                        const item = table.items[i];
+                        const check = nextCheckBase + item.probability!;
+                        if (roll < check) {
+                            const index = itemToIndexMap.get(item.id);
+                            if (index !== undefined) {
+                                for (const goal of groupedGoals[tableIndex][i]) {
+                                    const completedBefore = checkGoalCompletion(counts[index], goal);
+                                    const completedAfter = checkGoalCompletion(counts[index] + 1, goal);
+                                    if (!completedBefore && completedAfter) {
+                                        fulfilledGoals++;
+                                    }
+                                    else if (completedBefore && !completedAfter) {
+                                        fulfilledGoals--;
+                                    }
+                                    success = success && !checkGoalFailure(counts[index] + 1, goal);
+                                }
+                                counts[index]++;
+                            }
+                            break;
                         }
-                        else if (completedBefore && !completedAfter) {
-                            fulfilledGoals--;
-                        }
-                        success = success && !checkGoalFailure(counts[i] + 1, goal);
+                        nextCheckBase = check;
                     }
-                    counts[i]++;
-                    break;
                 }
-                nextCheckBase = check;
             }
             
             attempts++;
@@ -86,8 +98,15 @@ export class Simulator {
     start() {
         this.isRunning = true;
         
+        const goals = this.simulation.goals;
+        const tables = this.simulation.tables;
+        
+        const targetItems = uniqBy(goals.map(x => x.item!), x => x.id);
+        const groupedGoals = groupGoals(tables, goals);
+        const itemToIndexMap = new Map<string, number>(targetItems.map((x, index) => [x.id, index]));
+        
         runWorkerLoop(() => {
-            this.simulateRound();
+            this.simulateRound(targetItems, groupedGoals, itemToIndexMap);
             return this.isRunning;
         });
     }

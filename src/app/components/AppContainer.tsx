@@ -1,7 +1,7 @@
 import "./AppContainer.scss";
 import React from "react";
 import { AnyProbabilityGoal } from "../../shared/interfaces/Goals";
-import { ProbabilityItem } from "../../shared/interfaces/Probability";
+import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
 import { GoalInputContainer } from "./GoalInputContainer";
 import { ProbabilityInputContainer } from "./ProbabilityInputContainer";
 import { ResultDisplayContainer } from "./ResultDisplayContainer";
@@ -11,7 +11,7 @@ interface Props {
 }
 
 interface State {
-    probabilities: ProbabilityItem[],
+    tables: ProbabilityTable[],
     goals: AnyProbabilityGoal[]
 }
 
@@ -20,7 +20,7 @@ export class AppContainer extends React.PureComponent<Props, State> {
         super(props);
         
         this.state = {
-            probabilities: [],
+            tables: [],
             goals: []
         };
     }
@@ -31,14 +31,14 @@ export class AppContainer extends React.PureComponent<Props, State> {
                 <div className="app-input-container">
                     <div className="app-probability-input-container">
                         <ProbabilityInputContainer
-                            onChange={probabilities => this.setState({
-                                probabilities: probabilities
+                            onChange={tables => this.setState({
+                                tables: tables
                             })}
                         />
                     </div>
                     <div className="app-goal-input-container">
                         <GoalInputContainer
-                            probabilities={this.state.probabilities}
+                            tables={this.state.tables}
                             onChange={goals => this.setState({
                                 goals: goals
                             })}
@@ -47,7 +47,7 @@ export class AppContainer extends React.PureComponent<Props, State> {
                 </div>
                 <div className="app-result-container">
                     <ResultDisplayContainer
-                        probabilities={this.state.probabilities}
+                        tables={this.state.tables}
                         goals={this.state.goals}
                     />
                 </div>

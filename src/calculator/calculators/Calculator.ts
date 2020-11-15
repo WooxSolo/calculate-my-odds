@@ -1,9 +1,9 @@
-import { uniqBy } from "lodash";
+import { flatten, groupBy, uniqBy } from "lodash";
 import { Calculation } from "../../shared/interfaces/calculator/Calculation";
 import { CalculationDataPoint, CalculationResultType, DataCalculationResult } from "../../shared/interfaces/calculator/CalculationResult";
 import { ComparisonOperatorType } from "../../shared/interfaces/Compators";
 import { ProbabilityGoal } from "../../shared/interfaces/Goals";
-import { ProbabilityItem } from "../../shared/interfaces/Probability";
+import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
 import { runWorkerLoop } from "../../shared/helpers/LoopHelper";
 import { checkGoalCompletion, checkGoalFailure, groupGoals } from "../../simulator/helpers/SimulationHelpers";
 import { DynamicFloat64Array } from "../../shared/data-structures/DynamicFloat64Array";
@@ -11,6 +11,10 @@ import { getTruncatedDataDynamic } from "../../shared/helpers/CalculationHelper"
 import { debug } from "webpack";
 
 type State = Int32Array
+
+interface CalculationData {
+    
+}
 
 function parseState(stateString: string): State {
     return new Int32Array(stateString.split(",").map(x => parseInt(x)));
@@ -20,9 +24,9 @@ function serializeState(state: State) {
     return state.join(",");
 }
 
-function checkCompletion(state: State, groupedGoals: ProbabilityGoal[][]) {
+function checkCompletion(state: State, groupedGoals: ItemGoalGroup[]) {
     for (let i = 0; i < state.length; i++) {
-        for (const goal of groupedGoals[i]) {
+        for (const goal of flatten(groupedGoals.map(x => x.goals))) {
             if (!checkGoalCompletion(state[i], goal)) {
                 return false;
             }
@@ -31,15 +35,20 @@ function checkCompletion(state: State, groupedGoals: ProbabilityGoal[][]) {
     return true;
 }
 
-function checkFailure(state: State, groupedGoals: ProbabilityGoal[][]) {
+function checkFailure(state: State, groupedGoals: ItemGoalGroup[]) {
     for (let i = 0; i < state.length; i++) {
-        for (const goal of groupedGoals[i]) {
+        for (const goal of flatten(groupedGoals.map(x => x.goals))) {
             if (checkGoalFailure(state[i], goal)) {
                 return true;
             }
         }
     }
     return false;
+}
+
+interface ItemGoalGroup {
+    item: ProbabilityItem,
+    goals: ProbabilityGoal[]
 }
 
 export class Calculator {
@@ -70,38 +79,61 @@ export class Calculator {
         this.onCompletion = onCompletion;
     }
     
-    private nextStateCalculation(probabilities: ProbabilityItem[], maxCounts: Int32Array) {
-        const states = this.lastStates;
+    private nextStateCalculation(tables: ProbabilityTable[], maxCounts: Int32Array,
+            itemToIndexMap: Map<string, number>) {
+        let states = this.lastStates;
         
-        const nextStates = new Map<string, number>();
-        for (const stateEntry of states) {
-            const state = parseState(stateEntry[0]);
-            for (let i = 0; i < probabilities.length; i++) {
-                const item = probabilities[i];
-                const nextState = new Int32Array(state);
-                if (nextState[i] < maxCounts[i]) {
-                    nextState[i]++;
+        // TODO: Consider storing the index on an object with the item for performance
+        // instead of using the itemToIndexMap
+        
+        for (const table of tables) {
+            for (let rollNumber = 0; rollNumber < table.rollsPerIteration; rollNumber++) {
+                const nextStates = new Map<string, number>();
+                const nothingProbability = 1 - table.items.reduce((a, item) => {
+                    const index = itemToIndexMap.get(item.id);
+                    if (index === undefined) {
+                        return a;
+                    }
+                    return a + item.probability!;
+                }, 0);
+                    
+                for (const stateEntry of states) {
+                    for (const item of table.items) {
+                        const index = itemToIndexMap.get(item.id);
+                        if (index === undefined) {
+                            // TODO: Consider filtering the items in the table before iterating it
+                            // to not have to iterate over items that don't impact
+                            // the goal in any way
+                            continue;
+                        }
+                        
+                        const state = parseState(stateEntry[0]);
+                        const nextState = new Int32Array(state);
+                        nextState[index] = Math.min(maxCounts[index], nextState[index] + 1);
+                        const serializedState = serializeState(nextState);
+                        
+                        const prevProbability = nextStates.get(serializedState) ?? 0;
+                        const nextProbability = stateEntry[1] * item.probability!;
+                        if (prevProbability + nextProbability > 0) {
+                            nextStates.set(serializedState, prevProbability + nextProbability);
+                        }
+                    }
+                    
+                    const prevNothingProbability = nextStates.get(stateEntry[0]) ?? 0;
+                    const nextNothingProbability = stateEntry[1] * nothingProbability;
+                    if (prevNothingProbability + nextNothingProbability > 0) {
+                        nextStates.set(stateEntry[0], prevNothingProbability + nextNothingProbability);
+                    }
                 }
-                const serializedState = serializeState(nextState);
-                const prevProbability = nextStates.get(serializedState) ?? 0;
-                const nextProbability = stateEntry[1] * item.probability!;
-                if (prevProbability + nextProbability > 0) {
-                    nextStates.set(serializedState, prevProbability + nextProbability);
-                }
-            }
-            
-            const nothingProbability = 1 - probabilities.reduce((a, b) => a + b.probability!, 0);
-            const prevNothingProbability = nextStates.get(stateEntry[0]) ?? 0;
-            const nextNothingProbability = stateEntry[1] * nothingProbability;
-            if (prevNothingProbability + nextNothingProbability > 0) {
-                nextStates.set(stateEntry[0], prevNothingProbability + nextNothingProbability);
+                
+                states = nextStates;
             }
         }
         
-        this.lastStates = nextStates;
+        this.lastStates = states;
     }
     
-    private updateCompletionRate(groupedGoals: ProbabilityGoal[][]) {
+    private updateCompletionRate(groupedGoals: ItemGoalGroup[]) {
         for (const stateEntry of this.lastStates) {
             if (checkCompletion(parseState(stateEntry[0]), groupedGoals)) {
                 this.completionRate += stateEntry[1];
@@ -111,7 +143,7 @@ export class Calculator {
         this.resultArray.push(this.completionRate);
     }
     
-    private updateFailureRate(groupedGoals: ProbabilityGoal[][]) {
+    private updateFailureRate(groupedGoals: ItemGoalGroup[]) {
         for (const stateEntry of this.lastStates) {
             const state = parseState(stateEntry[0]);
             if (checkFailure(state, groupedGoals)) {
@@ -135,36 +167,46 @@ export class Calculator {
     start() {
         this.isRunning = true;
         
-        const probabilities = uniqBy(this.calculation.goals.map(x => x.item!), x => x.id);
-        const groupedGoals = groupGoals(this.calculation.probabilities, this.calculation.goals);
-        const maxCounts = new Int32Array(probabilities.length);
-        for (let i = 0; i < groupedGoals.length; i++) {
-            for (const goal of groupedGoals[i]) {
+        const tables = this.calculation.tables;
+        const goals = this.calculation.goals;
+        const uniqueGoalItemDictionary = groupBy(goals, x => x.item!.id);
+        const uniqueGroupedGoals = Object.keys(uniqueGoalItemDictionary).map(key => ({
+            item: uniqueGoalItemDictionary[key][0].item,
+            goals: uniqueGoalItemDictionary[key]
+        } as ItemGoalGroup));
+        const maxCounts = new Int32Array(uniqueGroupedGoals.length);
+        for (let i = 0; i < uniqueGroupedGoals.length; i++) {
+            const group = uniqueGroupedGoals[i];
+            const maxNeed = Math.max(...group.goals.map(goal => {
                 switch (goal.comparator.type) {
                     case ComparisonOperatorType.GreaterOrEquals:
                     case ComparisonOperatorType.LessThan: {
-                        maxCounts[i] = Math.max(maxCounts[i], goal.targetCount!);
-                        break;
+                        return goal.targetCount!;
                     }
                     case ComparisonOperatorType.GreaterThan:
                     case ComparisonOperatorType.NotEquals:
                     case ComparisonOperatorType.Equals:
                     case ComparisonOperatorType.LessOrEquals: {
-                        maxCounts[i] = Math.max(maxCounts[i], goal.targetCount! + 1);
-                        break;
+                        return Math.max(maxCounts[i], goal.targetCount! + 1);
                     }
                 }
-            }
+                throw new Error("Unhandled comparion operator");
+            }));
+            maxCounts[i] = maxNeed;
         }
+        const itemToIndexMap = new Map<string, number>(uniqueGroupedGoals.map((x, index) => [
+            x.item.id,
+            index
+        ]));
         
         if (this.lastStates.size === 0) {
-            const initialState: State = new Int32Array(probabilities.length);
+            const initialState: State = new Int32Array(uniqueGroupedGoals.length);
             this.lastStates.set(serializeState(initialState), 1);
         }
         
         runWorkerLoop(() => {
-            this.updateFailureRate(groupedGoals);
-            this.updateCompletionRate(groupedGoals);
+            this.updateFailureRate(uniqueGroupedGoals);
+            this.updateCompletionRate(uniqueGroupedGoals);
             this.updateAverage();
 
             // TODO: Change 0.999999 to be a constant and make it closer to 1
@@ -175,7 +217,7 @@ export class Calculator {
             
             // TODO: Maybe move this to the top of the function, but don't
             // run it on first iteration
-            this.nextStateCalculation(probabilities, maxCounts);
+            this.nextStateCalculation(tables, maxCounts, itemToIndexMap);
             
             return this.isRunning;
         });

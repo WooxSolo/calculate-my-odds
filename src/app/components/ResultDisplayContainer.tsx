@@ -2,7 +2,7 @@ import "./ResultDisplayContainer.scss";
 import React from "react";
 import { CalculationMethod, CalculationMethodType } from "../../shared/interfaces/CalculationMethods";
 import { AnyProbabilityGoal } from "../../shared/interfaces/Goals";
-import { ProbabilityItem } from "../../shared/interfaces/Probability";
+import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
 import { calculationMethods } from "../helper/CalculationMethodHelpers";
 import { Button, ButtonSize } from "./common/Button";
 import { Select } from "./common/Select";
@@ -20,7 +20,7 @@ import { SpaceContainer } from "./common/SpaceContainer";
 import { nextUniqueId } from "../helper/IdHelpers";
 
 interface Props {
-    probabilities: ProbabilityItem[],
+    tables: ProbabilityTable[],
     goals: AnyProbabilityGoal[]
 }
 
@@ -134,7 +134,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         const startMessage: StartSimulationEvent = {
             type: SimulationWorkerEventType.StartSimulation,
             simulation: {
-                probabilities: this.props.probabilities,
+                tables: this.props.tables,
                 goals: this.props.goals
             },
             initialIterationsAtProbability: 0.5,
@@ -194,7 +194,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
         const startMessage: StartCalculationEvent = {
             type: CalculationWorkerEventType.StartCalculation,
             calculation: {
-                probabilities: this.props.probabilities,
+                tables: this.props.tables,
                 goals: this.props.goals
             },
             initialIterationsAtProbability: 0.5,
