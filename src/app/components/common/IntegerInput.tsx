@@ -5,7 +5,9 @@ interface Props {
     value?: number,
     onChange: (value: number) => void,
     placeholder?: string,
-    autoFocus?: boolean
+    autoFocus?: boolean,
+    min?: number,
+    max?: number
 }
 
 interface State {
@@ -29,6 +31,8 @@ export class IntegerInput extends React.PureComponent<Props, State> {
                 value={this.props.value ?? ""}
                 onChange={e => this.props.onChange(parseInt(e.target.value))}
                 autoFocus={this.props.autoFocus}
+                min={this.props.min}
+                max={this.props.max}
             />
         );
     }

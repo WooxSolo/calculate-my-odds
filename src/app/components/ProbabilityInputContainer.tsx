@@ -2,17 +2,14 @@ import "./ProbabilityInputContainer.scss";
 import React from "react";
 import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
 import { nextUniqueId } from "../helper/IdHelpers";
-import { Button } from "./common/Button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { SpaceContainer } from "./common/SpaceContainer";
 import { ProbabilityTableContainer } from "./ProbabilityTableContainer";
 import { Tabs } from "./common/Tabs";
-import { ButtonContainer } from "./common/ButtonContainer";
-import { ButtonIcon } from "./common/ButtonIcon";
+import { Validator } from "../data-structures/Validator";
 
 interface Props {
-    onChange: (tables: ProbabilityTable[]) => void
+    onChange: (tables: ProbabilityTable[]) => void,
+    validator: Validator
 }
 
 interface State {
@@ -35,6 +32,10 @@ export class ProbabilityInputContainer extends React.PureComponent<Props, State>
         this.nextDefaultOptionName = this.nextDefaultOptionName.bind(this);
     }
     
+    componentDidMount() {
+        this.props.onChange(this.state.tables);
+    }
+    
     private nextDefaultTableName() {
         return `Table ${this.nextTableValue++}`;
     }
@@ -48,11 +49,7 @@ export class ProbabilityInputContainer extends React.PureComponent<Props, State>
             id: nextUniqueId().toString(),
             name: this.nextDefaultTableName(),
             rollsPerIteration: 1,
-            items: [{
-                id: nextUniqueId().toString(),
-                name: this.nextDefaultOptionName(),
-                probabilityDisplay: ""
-            }]
+            items: [this.createNewItem()]
         };
         return newTable;
     }
@@ -71,16 +68,6 @@ export class ProbabilityInputContainer extends React.PureComponent<Props, State>
         this.setState({
             tables: newTables,
             selectedTableIndex: newTables.length - 1
-        });
-        this.props.onChange?.(newTables);
-    }
-    
-    private addNewItem() {
-        const newTables = [...this.state.tables];
-        const selectedTable = newTables[this.state.selectedTableIndex];
-        selectedTable.items = [...selectedTable.items, this.createNewItem()];
-        this.setState({
-            tables: newTables
         });
         this.props.onChange?.(newTables);
     }
@@ -108,6 +95,10 @@ export class ProbabilityInputContainer extends React.PureComponent<Props, State>
                                         });
                                         this.props.onChange?.(newTables);
                                     }}
+                                    requestTabFocus={() => this.setState({
+                                        selectedTableIndex: index
+                                    })}
+                                    validator={this.props.validator}
                                 />
                             )
                         }))}
@@ -125,17 +116,6 @@ export class ProbabilityInputContainer extends React.PureComponent<Props, State>
                     />
                 </div>
                 }
-                <ButtonContainer>
-                    <Button
-                        content={(
-                            <>
-                                <ButtonIcon icon={faPlus} />
-                                Add item
-                            </>
-                        )}
-                        onClick={() => this.addNewItem()}
-                    />
-                </ButtonContainer>
             </SpaceContainer>
         );
     }

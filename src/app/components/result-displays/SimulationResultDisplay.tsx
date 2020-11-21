@@ -9,6 +9,7 @@ import { IconContainer } from "../common/IconContainer";
 import { faPause, faPlay } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "../common/Button";
 import { Editable } from "../common/Editable";
+import { TooltipContainer } from "../info/TooltipContainer";
 
 interface Props {
     iterations: number,
@@ -71,27 +72,25 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
                             label="Simulated goal completions"
                             content={(
                                 <div className="iterations-content-container">
-                                    <div
-                                        className="iterations-content"
-                                        title={this.props.iterations.toLocaleString()}
-                                    >
-                                        {abbreviateValue(this.props.iterations, true, true)}
-                                    </div>
-                                    <div
-                                        className="iterations-icon"
-                                        title={this.props.isSimulationRunning ? "Pause" : "Play"}
-                                    >
-                                        <IconContainer
-                                            icon={this.props.isSimulationRunning ? faPause : faPlay}
-                                            onClick={() => {
-                                                if (this.props.isSimulationRunning) {
-                                                    this.props.onRequestPause?.();
-                                                }
-                                                else {
-                                                    this.props.onRequestPlay?.();
-                                                }
-                                            }}
-                                        />
+                                    <TooltipContainer tooltipContent={this.props.iterations.toLocaleString()} showOnHover>
+                                        <div className="iterations-content">
+                                            {abbreviateValue(this.props.iterations, true, true)}
+                                        </div>
+                                    </TooltipContainer>
+                                    <div className="iterations-icon">
+                                        <TooltipContainer tooltipContent={this.props.isSimulationRunning ? "Pause" : "Play"} showOnHover>
+                                            <IconContainer
+                                                icon={this.props.isSimulationRunning ? faPause : faPlay}
+                                                onClick={() => {
+                                                    if (this.props.isSimulationRunning) {
+                                                        this.props.onRequestPause?.();
+                                                    }
+                                                    else {
+                                                        this.props.onRequestPlay?.();
+                                                    }
+                                                }}
+                                            />
+                                        </TooltipContainer>
                                     </div>
                                 </div>
                             )}

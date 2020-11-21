@@ -11,14 +11,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { SpaceContainer } from "./common/SpaceContainer";
 import { flatten, groupBy, uniqBy } from "lodash";
+import { Validator } from "../data-structures/Validator";
+import { ErrorDisplay } from "./common/ErrorDisplay";
 
 interface Props {
     tables: ProbabilityTable[],
-    onChange: (goals: AnyProbabilityGoal[]) => void
+    onChange: (goals: AnyProbabilityGoal[]) => void,
+    validator: Validator
 }
 
 interface State {
-    goals: AnyProbabilityGoal[]
+    goals: AnyProbabilityGoal[],
+    showNoGoalsError: boolean
 }
 
 export class GoalInputContainer extends React.PureComponent<Props, State> {
@@ -28,8 +32,19 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
         super(props);
         
         this.state = {
-            goals: []
+            goals: [],
+            showNoGoalsError: false
         };
+        
+        this.validate = this.validate.bind(this);
+    }
+    
+    componentDidMount() {
+        this.props.validator.addValidation(this.validate);
+    }
+    
+    componentWillUnmount() {
+        this.props.validator.removeValidation(this.validate);
     }
     
     componentDidUpdate(prevProps: Props) {
@@ -56,7 +71,8 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
         const newGoals = [...this.state.goals, newGoal];
         
         this.setState({
-            goals: newGoals
+            goals: newGoals,
+            showNoGoalsError: false
         });
         this.props.onChange(newGoals);
     }
@@ -80,9 +96,26 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
         this.props.onChange(newGoals);
     }
     
+    private validate() {
+        if (this.state.goals.length === 0) {
+            this.setState({
+                showNoGoalsError: true
+            });
+            return false;
+        }
+        return true;
+    }
+    
     render() {
         return (
             <SpaceContainer className="goal-input-container-component">
+                {this.state.showNoGoalsError &&
+                <div>
+                    <ErrorDisplay>
+                        At least one goal must be set.
+                    </ErrorDisplay>
+                </div>
+                }
                 {this.state.goals.length > 0 &&
                 <div>
                     {this.state.goals.map((goal, index) => (
@@ -92,6 +125,7 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
                                 goal={goal}
                                 onChange={x => this.updateGoal(index, x)}
                                 onDeleteRequest={() => this.deleteGoal(goal)}
+                                validator={this.props.validator}
                             />
                         </div>
                     ))}
@@ -99,7 +133,8 @@ export class GoalInputContainer extends React.PureComponent<Props, State> {
                 }
                 <div>
                     <Button
-                        content={<FontAwesomeIcon icon={faPlus} />}
+                        icon={faPlus}
+                        content="Add goal"
                         onClick={() => this.addNewGoal()}
                     />
                 </div>

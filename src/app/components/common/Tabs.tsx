@@ -112,11 +112,13 @@ export class Tabs extends React.PureComponent<Props, State> {
                         <FontAwesomeIcon icon={faPlus} className="new-tab-icon" />
                     </div>
                 </div>
-                {this.props.selectedIndex >= 0 && this.props.selectedIndex < this.props.tabs.length &&
                 <div className="tab-content-container">
-                    {this.props.tabs[this.props.selectedIndex].content}
+                    {this.props.tabs.map((tab, index) => (
+                        <div key={tab.id} className={`tab-content ${index === this.props.selectedIndex ? "" : "tab-content-hidden"}`}>
+                            {tab.content}
+                        </div>
+                    ))}
                 </div>
-                }
             </div>
         );
     }

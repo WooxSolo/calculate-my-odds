@@ -18,10 +18,12 @@ import { SimulationResultDisplay } from "./result-displays/SimulationResultDispl
 import { CalculationResultDisplay } from "./result-displays/CalculationResultDisplay";
 import { SpaceContainer } from "./common/SpaceContainer";
 import { nextUniqueId } from "../helper/IdHelpers";
+import { Validator } from "../data-structures/Validator";
 
 interface Props {
     tables: ProbabilityTable[],
-    goals: AnyProbabilityGoal[]
+    goals: AnyProbabilityGoal[],
+    validator: Validator
 }
 
 interface State {
@@ -250,6 +252,10 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
     }
     
     private async calculateResult() {
+        if (!this.props.validator.validate()) {
+            return;
+        }
+        
         this.cancelRunningCalculation();
         
         if (this.state.calculationMethod.type === CalculationMethodType.Simulation) {

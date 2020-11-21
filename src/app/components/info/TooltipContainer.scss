@@ -1,0 +1,95 @@
+
+.tooltip-container-component {
+    position: relative;
+    
+    .tooltip-container {
+        position: absolute;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease-out;
+        width: 15em;
+        z-index: 100;
+        
+        &.tooltip-container-top {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 0.5rem;
+            text-align: center;
+            
+            .tooltip-direction-icon {
+                border-top-color: #000000;
+                top: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        
+        &.tooltip-container-bottom {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 0.5rem;
+            text-align: center;
+            
+            .tooltip-direction-icon {
+                border-bottom-color: #000000;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        
+        &.tooltip-container-left {
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-right: 0.5rem;
+            text-align: right;
+            
+            .tooltip-direction-icon {
+                border-left-color: #000000;
+                left: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+        
+        &.tooltip-container-right {
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 0.5rem;
+            text-align: left;
+            
+            .tooltip-direction-icon {
+                border-right-color: #000000;
+                right: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+        }
+    }
+    
+    .tooltip-visible {
+        opacity: 1;
+    }
+    
+    .tooltip {
+        border-radius: 0.3em;
+        padding: 0.3em 0.5em;
+        background-color: #000000;
+        box-shadow: 0 0 1em #000000;
+        max-width: 15em;
+        box-sizing: border-box;
+        display: inline-block;
+        text-align: left;
+        position: relative;
+        font-size: 1rem;
+    }
+    
+    .tooltip-direction-icon {
+        position: absolute;
+        border: 0.5em solid transparent;
+    }
+}

@@ -4,7 +4,6 @@ Work in progress.
 
 # TODO-list
 
-- Add error handling for user input.
 - Add support for partial completion goals.
 - Add support for conditional rolls on tables.
 - Add more options for the goals (e.g. conditions based on iterations).

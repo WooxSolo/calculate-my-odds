@@ -1,5 +1,7 @@
 import "./Button.scss";
 import React from "react";
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
+import { ButtonIcon } from "./ButtonIcon";
 
 export enum ButtonSize {
     Medium,
@@ -8,6 +10,7 @@ export enum ButtonSize {
 
 interface Props {
     className?: string,
+    icon?: IconProp,
     content: React.ReactNode,
     onClick?: () => void,
     size?: ButtonSize
@@ -40,6 +43,9 @@ export class Button extends React.PureComponent<Props, State> {
                     fontSize: fontSize 
                 }}
             >
+                {this.props.icon &&
+                <ButtonIcon icon={this.props.icon} />
+                }
                 {this.props.content}
             </button>
         );

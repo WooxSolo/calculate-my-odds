@@ -9,6 +9,6 @@ export interface ProbabilityTable {
 export interface ProbabilityItem {
     id: string,
     name: string,
-    probabilityDisplay: string,
     probability?: number,
+    probabilityDisplay: string
 }

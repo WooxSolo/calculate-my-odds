@@ -5,6 +5,7 @@ import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Proba
 import { GoalInputContainer } from "./GoalInputContainer";
 import { ProbabilityInputContainer } from "./ProbabilityInputContainer";
 import { ResultDisplayContainer } from "./ResultDisplayContainer";
+import { Validator } from "../data-structures/Validator";
 
 interface Props {
     
@@ -12,7 +13,8 @@ interface Props {
 
 interface State {
     tables: ProbabilityTable[],
-    goals: AnyProbabilityGoal[]
+    goals: AnyProbabilityGoal[],
+    validator: Validator
 }
 
 export class AppContainer extends React.PureComponent<Props, State> {
@@ -21,7 +23,8 @@ export class AppContainer extends React.PureComponent<Props, State> {
         
         this.state = {
             tables: [],
-            goals: []
+            goals: [],
+            validator: new Validator()
         };
     }
     
@@ -34,6 +37,7 @@ export class AppContainer extends React.PureComponent<Props, State> {
                             onChange={tables => this.setState({
                                 tables: tables
                             })}
+                            validator={this.state.validator}
                         />
                     </div>
                     <div className="app-goal-input-container">
@@ -42,6 +46,7 @@ export class AppContainer extends React.PureComponent<Props, State> {
                             onChange={goals => this.setState({
                                 goals: goals
                             })}
+                            validator={this.state.validator}
                         />
                     </div>
                 </div>
@@ -49,6 +54,7 @@ export class AppContainer extends React.PureComponent<Props, State> {
                     <ResultDisplayContainer
                         tables={this.state.tables}
                         goals={this.state.goals}
+                        validator={this.state.validator}
                     />
                 </div>
             </div>
