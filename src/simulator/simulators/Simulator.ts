@@ -49,7 +49,7 @@ export class Simulator {
         while (success && fulfilledGoals < goals.length) {
             for (let tableIndex = 0; tableIndex < tables.length; tableIndex++) {
                 const table = tables[tableIndex];
-                for (let rollNum = 0; rollNum < table.rollsPerIteration; rollNum++) {
+                for (let rollNum = 0; rollNum < table.rollsPerIteration!; rollNum++) {
                     const roll = Math.random();
                     let nextCheckBase = 0;
                     for (let i = 0; i < table.items.length; i++) {

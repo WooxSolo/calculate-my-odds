@@ -75,4 +75,10 @@
     .react-select__option--is-selected {
         background-color: #2E6FEC;
     }
+    
+    &.input-error {
+        .react-select__control {
+            border-color: #d22525;
+        }
+    }
 }

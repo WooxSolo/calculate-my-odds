@@ -57,6 +57,10 @@ export class ProbabilityInput extends React.PureComponent<Props, State> {
     }
     
     private shouldMarkError() {
+        if (this.state.showInvalidProbabilityError) {
+            return true;
+        }
+        
         const inputValue = this.props.item.probabilityDisplay;
         if (inputValue === undefined || inputValue.length === 0) {
             return false;

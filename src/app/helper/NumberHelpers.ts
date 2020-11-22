@@ -25,3 +25,28 @@ export function abbreviateValue(value: number, alwaysShowFraction?: boolean, isI
     }
     return `${toFixedFunc(value / 1000000000)}B`;
 }
+
+export function getAbbreviatedMultiplier(value: string) {
+    switch (value.toLowerCase()) {
+        case "k": return 1000;
+        case "m": return 1000000;
+        case "b": return 1000000000;
+    }
+    return undefined;
+}
+
+export function parseAbbreviatedNumber(valueString: string) {
+    const match = valueString.match(/^\s*(-)?(\d*(?:[,.]\d*)?)([kmb])?\s*?$/i);
+    if (!match) {
+        return undefined;
+    }
+    if (!/\d/.test(match[2])) {
+        return undefined;
+    }
+    
+    const sign = match[1] === "-" ? -1 : 1;
+    const digits = parseFloat(match[2].replace(",", "."));
+    const magnitude = getAbbreviatedMultiplier(match[3] ?? "") ?? 1;
+    const value = sign * digits * magnitude;
+    return value;
+}

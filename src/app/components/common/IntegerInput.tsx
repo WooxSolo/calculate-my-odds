@@ -3,11 +3,15 @@ import { Input } from "./Input";
 
 interface Props {
     value?: number,
-    onChange: (value: number) => void,
+    onChange: (value?: number) => void,
     placeholder?: string,
     autoFocus?: boolean,
     min?: number,
-    max?: number
+    max?: number,
+    markError?: boolean,
+    onlyMarkErrorOnBlur?: boolean,
+    onFocus?: () => void,
+    onBlur?: () => void
 }
 
 interface State {
@@ -29,10 +33,22 @@ export class IntegerInput extends React.PureComponent<Props, State> {
                 type="text"
                 placeholder={this.props.placeholder}
                 value={this.props.value ?? ""}
-                onChange={e => this.props.onChange(parseInt(e.target.value))}
+                onChange={e => {
+                    const digits = e.target.value.replace(/[^0-9]/g, "");
+                    if (digits.length === 0) {
+                        this.props.onChange(undefined);
+                    }
+                    else {
+                        this.props.onChange(parseInt(digits));
+                    }
+                }}
                 autoFocus={this.props.autoFocus}
                 min={this.props.min}
                 max={this.props.max}
+                markError={this.props.markError}
+                onlyMarkErrorOnBlur={this.props.onlyMarkErrorOnBlur}
+                onFocus={this.props.onFocus}
+                onBlur={this.props.onBlur}
             />
         );
     }

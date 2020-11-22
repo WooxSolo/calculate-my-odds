@@ -11,12 +11,25 @@
     display: inline-block;
     transition: border-color 0.2s ease-out,
         color 0.2s ease-out;
-    
+    cursor: pointer;
+        
+    &.editable-focused {
+        cursor: default;
+        
+        .editable-input {
+            cursor: text;
+        }
+    }
+        
     .editable-input {
         min-width: 10px;
         height: 1em;
         display: inline-block;
         line-height: 1em;
-        cursor: text;
+        outline: none;
+    }
+    
+    &.input-error {
+        border-color: #d22525;
     }
 }

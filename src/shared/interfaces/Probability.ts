@@ -3,7 +3,7 @@ export interface ProbabilityTable {
     id: string,
     name: string,
     items: ProbabilityItem[],
-    rollsPerIteration: number
+    rollsPerIteration?: number
 }
 
 export interface ProbabilityItem {

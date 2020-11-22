@@ -83,6 +83,7 @@ export class ProbabilityGoalInput extends React.PureComponent<Props, State> {
                             }}
                             getOptionLabel={(x) => x.name}
                             getOptionValue={(x) => x.id}
+                            markError={this.state.showNoItemSelectedError}
                         />
                     </TooltipContainer>
                 </div>
@@ -101,19 +102,29 @@ export class ProbabilityGoalInput extends React.PureComponent<Props, State> {
                     />
                 </div>
                 <div className="goal-target-container">
-                    <IntegerInput
-                        placeholder="Amount"
-                        value={this.props.goal.targetCount}
-                        onChange={(x) => {
-                            this.props.onChange({
-                                ...this.props.goal,
-                                targetCount: x,
-                            });
-                            this.setState({
+                    <TooltipContainer
+                        tooltipContent="A quantity must be entered."
+                        show={this.state.showNoTargetValueError}
+                        side={TooltipSide.Left}
+                    >
+                        <IntegerInput
+                            placeholder="Quantity"
+                            value={this.props.goal.targetCount}
+                            onChange={(x) => {
+                                this.props.onChange({
+                                    ...this.props.goal,
+                                    targetCount: x,
+                                });
+                                this.setState({
+                                    showNoTargetValueError: false
+                                });
+                            }}
+                            onFocus={() => this.setState({
                                 showNoTargetValueError: false
-                            });
-                        }}
-                    />
+                            })}
+                            markError={this.state.showNoTargetValueError}
+                        />
+                    </TooltipContainer>
                 </div>
                 <div className="goal-button-container">
                     <IconContainer

@@ -12,6 +12,7 @@ import { ErrorDisplay } from "./common/ErrorDisplay";
 import { Input } from "./common/Input";
 import { IntegerInput } from "./common/IntegerInput";
 import { SpaceContainer } from "./common/SpaceContainer";
+import { TooltipContainer, TooltipSide } from "./info/TooltipContainer";
 import { ProbabilityInput } from "./inputs/ProbabilityInput";
 
 interface Props {
@@ -24,7 +25,8 @@ interface Props {
 
 interface State {
     showTableProperties: boolean,
-    showProbabilitiesExceedOneError: boolean
+    showProbabilitiesExceedOneError: boolean,
+    showEmptyTableRollsPerIterationError: boolean
 }
 
 export class ProbabilityTableContainer extends React.PureComponent<Props, State> {
@@ -33,7 +35,8 @@ export class ProbabilityTableContainer extends React.PureComponent<Props, State>
         
         this.state = {
             showTableProperties: false,
-            showProbabilitiesExceedOneError: false
+            showProbabilitiesExceedOneError: false,
+            showEmptyTableRollsPerIterationError: false
         };
         
         this.validate = this.validate.bind(this);
@@ -90,6 +93,14 @@ export class ProbabilityTableContainer extends React.PureComponent<Props, State>
             // need to take that into account
             this.setState({
                 showProbabilitiesExceedOneError: true
+            });
+            this.props.requestTabFocus();
+            return false;
+        }
+        if (this.props.table.rollsPerIteration === undefined) {
+            this.setState({
+                showEmptyTableRollsPerIterationError: true,
+                showTableProperties: true
             });
             this.props.requestTabFocus();
             return false;
@@ -151,13 +162,28 @@ export class ProbabilityTableContainer extends React.PureComponent<Props, State>
                     </div>
                     <div>
                         <label>Table rolls per iteration</label>
-                        <IntegerInput
-                            value={this.props.table.rollsPerIteration}
-                            onChange={value => this.props.onChange?.({
-                                ...this.props.table,
-                                rollsPerIteration: value
-                            })}
-                        />
+                        <TooltipContainer
+                            tooltipContent="Enter a value."
+                            show={this.state.showEmptyTableRollsPerIterationError}
+                            side={TooltipSide.Right}
+                        >
+                            <IntegerInput
+                                value={this.props.table.rollsPerIteration}
+                                onChange={value => {
+                                    this.props.onChange?.({
+                                        ...this.props.table,
+                                        rollsPerIteration: value
+                                    });
+                                    this.setState({
+                                        showEmptyTableRollsPerIterationError: false
+                                    });
+                                }}
+                                onFocus={() => this.setState({
+                                    showEmptyTableRollsPerIterationError: false
+                                })}
+                                markError={this.state.showEmptyTableRollsPerIterationError}
+                            />
+                        </TooltipContainer>
                     </div>
                 </SpaceContainer>
                 }

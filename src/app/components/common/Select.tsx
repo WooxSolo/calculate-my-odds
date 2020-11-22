@@ -8,7 +8,8 @@ interface Props<T> {
     onChange?: (value?: T) => void,
     getOptionLabel: (value: T) => string,
     getOptionValue: (value: T) => string | number,
-    width?: string | number
+    width?: string | number,
+    markError?: boolean
 }
 
 interface State {
@@ -38,7 +39,7 @@ export class Select<T> extends React.PureComponent<Props<T>, State> {
                     }
                     return value.toString();
                 }}
-                className="select"
+                className={`select ${this.props.markError ? "input-error" : ""}`}
                 classNamePrefix="react-select"
                 styles={{
                     control: base => ({

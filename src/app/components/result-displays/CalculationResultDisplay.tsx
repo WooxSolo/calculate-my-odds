@@ -6,6 +6,8 @@ import { SpaceContainer } from "../common/SpaceContainer";
 import { InfoBox } from "../info/InfoBox";
 import { Button } from "../common/Button";
 import { Editable } from "../common/Editable";
+import { EditableInteger } from "../common/EditableInteger";
+import { EditableNumber } from "../common/EditableNumber";
 
 interface Props {
     totalIterations?: number,
@@ -103,15 +105,12 @@ export class CalculationResultDisplay extends React.PureComponent<Props, State> 
                             label={(
                                 <span>
                                     Iterations until {" "}
-                                    <Editable
-                                        initialValue={"50"}
+                                    <EditableNumber
+                                        initialValue={50}
                                         append="%"
-                                        onChange={value => {
-                                            this.setState({ percentageValue: value });
-                                            // TODO: Error handling
-                                            const probability = parseFloat(value) / 100;
-                                            this.props.onRequestIterationsAtProbability?.(probability);
-                                        }}
+                                        onChange={value => this.props.onRequestIterationsAtProbability?.(value / 100)}
+                                        min={0}
+                                        max={100}
                                     />
                                     {" "} chance of completion
                                 </span>
@@ -123,15 +122,11 @@ export class CalculationResultDisplay extends React.PureComponent<Props, State> 
                         <InfoBox
                             label={(
                                 <span>
-                                    Chance of completion at {" "}
-                                    <Editable
-                                        initialValue={"73"}
-                                        onChange={value => {
-                                            this.setState({ iterationsValue: value });
-                                            // TODO: Error handling
-                                            const iterations = parseInt(value);
-                                            this.props.onRequestProbabilityAtIterations?.(iterations);
-                                        }}
+                                    Chance of completion after {" "}
+                                    <EditableInteger
+                                        initialValue={73}
+                                        onChange={value => this.props.onRequestProbabilityAtIterations?.(value)}
+                                        min={0}
                                     />
                                     {" "} iterations
                                 </span>

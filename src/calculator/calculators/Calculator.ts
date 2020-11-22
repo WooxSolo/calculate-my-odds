@@ -87,7 +87,7 @@ export class Calculator {
         // instead of using the itemToIndexMap
         
         for (const table of tables) {
-            for (let rollNumber = 0; rollNumber < table.rollsPerIteration; rollNumber++) {
+            for (let rollNumber = 0; rollNumber < table.rollsPerIteration!; rollNumber++) {
                 const nextStates = new Map<string, number>();
                 const nothingProbability = 1 - table.items.reduce((a, item) => {
                     const index = itemToIndexMap.get(item.id);
