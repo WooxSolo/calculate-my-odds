@@ -6,7 +6,8 @@ interface Props {
     side?: TooltipSide,
     show?: boolean,
     showOnHover?: boolean,
-    maxWidth?: number | string
+    maxWidth?: number | string,
+    inlineContainer?: boolean
 }
 
 interface State {
@@ -76,6 +77,9 @@ export class TooltipContainer extends React.PureComponent<Props, State> {
                 className="tooltip-container-component"
                 onMouseEnter={this.onMouseEnter}
                 onMouseLeave={this.onMouseLeave}
+                style={{
+                    display: this.props.inlineContainer ? "inline" : "block"
+                }}
             >
                 {this.props.children}
                 <div

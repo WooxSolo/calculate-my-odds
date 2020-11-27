@@ -1,20 +1,18 @@
-import './ProbabilityGoalInput.scss';
+import './SingularCompletionGoalInput.scss';
 import React from 'react';
-import { ProbabilityGoal } from '../../../shared/interfaces/Goals';
-import { ProbabilityItem } from '../../../shared/interfaces/Probability';
+import { SingularCompletionGoal } from '../../../shared/interfaces/Goals';
 import { comparisonOperators } from '../../helper/ComparatorOperators';
 import { IntegerInput } from '../common/IntegerInput';
 import { Select } from '../common/Select';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { IconContainer } from '../common/IconContainer';
 import { Validator } from '../../data-structures/Validator';
 import { TooltipContainer, TooltipSide } from '../info/TooltipContainer';
 
 interface Props {
-    probabilityItems: ProbabilityItem[],
-    goal: ProbabilityGoal,
-    onChange: (goal: ProbabilityGoal) => void,
+    itemNames: string[],
+    goal: SingularCompletionGoal,
+    onChange: (goal: SingularCompletionGoal) => void,
     onDeleteRequest?: () => void,
     validator: Validator
 }
@@ -24,7 +22,7 @@ interface State {
     showNoTargetValueError: boolean
 }
 
-export class ProbabilityGoalInput extends React.PureComponent<Props, State> {
+export class SingularCompletionGoalInput extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -45,7 +43,7 @@ export class ProbabilityGoalInput extends React.PureComponent<Props, State> {
     }
     
     private validate() {
-        if (!this.props.goal.item) {
+        if (!this.props.goal.itemName) {
             this.setState({
                 showNoItemSelectedError: true
             });
@@ -70,19 +68,19 @@ export class ProbabilityGoalInput extends React.PureComponent<Props, State> {
                         side={TooltipSide.Left}
                     >
                         <Select
-                            options={this.props.probabilityItems}
-                            value={this.props.goal.item}
+                            options={this.props.itemNames.map(x => ({ name: x }))}
+                            value={this.props.goal.itemName ? { name: this.props.goal.itemName } : undefined}
                             onChange={(x) => {
                                 this.props.onChange({
                                     ...this.props.goal,
-                                    item: x,
+                                    itemName: x?.name,
                                 });
                                 this.setState({
                                     showNoItemSelectedError: false
                                 });
                             }}
-                            getOptionLabel={(x) => x.name}
-                            getOptionValue={(x) => x.id}
+                            getOptionLabel={x => x.name}
+                            getOptionValue={x => x.name}
                             markError={this.state.showNoItemSelectedError}
                         />
                     </TooltipContainer>

@@ -15,15 +15,20 @@ export interface CalculationDataPoint {
     completions: number
 }
 
+export interface CalculationObjectiveResult {
+    completionRate: number,
+    average: number,
+    iterationsAtProbability?: number,
+    probabilityAtIterations: number,
+    dataPoints: CalculationDataPoint[]
+}
+
 export interface DataCalculationResult {
     type: CalculationResultType.DataResult,
     totalIterations: number,
-    average: number,
-    completionRate: number,
-    failureRate: number,
-    dataPoints: CalculationDataPoint[],
-    iterationsAtProbability?: number,
-    probabilityAtIterations: number
+    successResult: CalculationObjectiveResult,
+    failureResult: CalculationObjectiveResult,
+    drawResult: CalculationObjectiveResult,
 }
 
 export type CalculationResult = DataCalculationResult

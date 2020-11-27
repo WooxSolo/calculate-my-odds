@@ -1,7 +1,9 @@
-import { ProbabilityGoal } from "../Goals";
+import { FullCompletionFailure } from "../Failures";
+import { FullCompletionGoal } from "../Goals";
 import { ProbabilityTable } from "../Probability";
 
 export interface Calculation {
     tables: ProbabilityTable[],
-    goals: ProbabilityGoal[]
+    rootGoal: FullCompletionGoal,
+    rootFailure: FullCompletionFailure
 }

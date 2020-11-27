@@ -20,7 +20,7 @@ export class SpaceContainer extends React.PureComponent<Props, State> {
     
     render() {
         return (
-            <div className={`space-container-component ${this.props.className}`}>
+            <div className={`space-container-component ${this.props.className ?? ""}`}>
                 {this.props.children}
             </div>
         );

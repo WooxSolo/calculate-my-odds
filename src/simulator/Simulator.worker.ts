@@ -1,6 +1,7 @@
 import { Simulator } from "./simulators/Simulator";
 import { SimulationWorkerEvent, SimulationWorkerEventType } from "../shared/interfaces/simulation/SimulationWorkerEvents";
 import { ReceivedIterationsAtProbabilityEvent, ReceivedProbabilityAtIterationsEvent, ReceivedResultSimulationEvent, SimulationMainEventTypes } from "../shared/interfaces/simulation/SimulationMainEvents";
+import { ProbabilityType } from "../shared/interfaces/Probability";
 
 const ctx: Worker = self as any;
 
@@ -30,7 +31,7 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
     }
     else if (data.type === SimulationWorkerEventType.RequestDataResult) {
         if (currentSimulator) {
-            const result = currentSimulator.getResult(data.maxDataPoints, data.minimumDistance);
+            const result = currentSimulator.getResult(data.maxDataPoints, data.threshold);
             const message: ReceivedResultSimulationEvent = {
                 type: SimulationMainEventTypes.ReceivedResult,
                 requestId: data.requestId,
@@ -42,10 +43,11 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
     else if (data.type === SimulationWorkerEventType.RequestProbabilityAtIterations) {
         if (currentSimulator) {
             currentSimulator.updateProbabilityAtIterationsTarget(data.iterations);
-            const result = currentSimulator.getProbabilityAtIterations();
             const message: ReceivedProbabilityAtIterationsEvent = {
                 type: SimulationMainEventTypes.ReceivedProbabilityAtIterations,
-                probability: result
+                successProbability: currentSimulator.getProbabilityAtIterations(ProbabilityType.Success),
+                failureProbability: currentSimulator.getProbabilityAtIterations(ProbabilityType.Failure),
+                drawProbability: currentSimulator.getProbabilityAtIterations(ProbabilityType.Draw),
             };
             ctx.postMessage(message);
         }
@@ -53,10 +55,11 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
     else if (data.type === SimulationWorkerEventType.RequestIterationsAtProbability) {
         if (currentSimulator) {
             currentSimulator.updateIterationsAtProbabilityTarget(data.probability);
-            const result = currentSimulator.getIterationsAtProbability();
             const message: ReceivedIterationsAtProbabilityEvent = {
                 type: SimulationMainEventTypes.ReceivedIterationsAtProbability,
-                iterations: result
+                successIterations: currentSimulator.getIterationsAtProbability(ProbabilityType.Success),
+                failureIterations: currentSimulator.getIterationsAtProbability(ProbabilityType.Failure),
+                drawIterations: currentSimulator.getIterationsAtProbability(ProbabilityType.Draw),
             };
             ctx.postMessage(message);
         }

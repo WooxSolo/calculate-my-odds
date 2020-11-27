@@ -1,14 +1,27 @@
 import "./CumulativeSuccessChart.scss";
 import React from "react";
 import Chart from "chart.js";
-import { SimulationDataPoint } from "../../../shared/interfaces/simulation/SimulationResult";
 import { abbreviateValue } from "../../helper/NumberHelpers";
+import { flatten } from "lodash";
 
 interface Props {
-    dataPoints: SimulationDataPoint[]
+    dataSets: DataSet[]
 }
 
 interface State {
+}
+
+export interface DataSet {
+    name: string,
+    dataPoints: DataPoint[],
+    pointColor: string,
+    lineColor: string,
+    labelAppendText?: string
+}
+
+export interface DataPoint {
+    x: number,
+    y: number
 }
 
 export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
@@ -38,11 +51,24 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
                     mode: "index",
                     intersect: false,
                     callbacks: {
+                        beforeTitle: x => {
+                            if (this.props.dataSets.length >= 2) {
+                                const labelString = x[0].xLabel?.toLocaleString();
+                                const name = x[0].xLabel === 1 ? "iteration" : "iterations";
+                                return `${labelString} ${name}`;
+                            }
+                            return "";
+                        },
                         label: x => {
-                            const labelString = x.xLabel?.toLocaleString();
-                            const name = x.xLabel === 1 ? "iteration" : "iterations";
                             const value = x.yLabel as number;
                             const percentage = value > 0.999 ? ">99.9%" : `${(value * 100).toFixed(1)}%`;
+                            if (this.props.dataSets.length >= 2) {
+                                const appendText = this.props.dataSets[x.datasetIndex!].labelAppendText;
+                                const append = appendText ? ` ${this.props.dataSets[x.datasetIndex!].labelAppendText}` : "";
+                                return `${percentage}${append}`;
+                            }
+                            const labelString = x.xLabel?.toLocaleString();
+                            const name = x.xLabel === 1 ? "iteration" : "iterations";
                             return `${labelString} ${name}: ${percentage}`;
                         }
                     },
@@ -68,13 +94,13 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
                         },
                         scaleLabel: {
                             display: true,
-                            labelString: "Cumulative probability of reaching goal"
+                            labelString: "Cumulative probability"
                         }
                     }],
                     xAxes: [{
                         ticks: {
                             beginAtZero: true,
-                            max: Math.max(1, ...this.props.dataPoints.map(x => x.completions)),
+                            max: Math.max(1, ...flatten(this.props.dataSets.map(x => x.dataPoints.map(y => y.x)))),
                             callback: x => Number.isInteger(x as number) ? abbreviateValue(x as number, false, true) : ""
                         },
                         scaleLabel: {
@@ -82,23 +108,21 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
                             labelString: "Iterations"
                         },
                         afterTickToLabelConversion: x => {
+                            // A hack to fix digits on top of each other at the end of the chart
                             x.ticks.pop();
                         }
                     }]
                 }
             },
             data: {
-                datasets: [{
-                    label: "Some data",
-                    data: this.props.dataPoints.map(p => ({
-                        x: p.completions,
-                        y: p.probability
-                    })),
-                    pointBackgroundColor: "#2E6FEC80",
-                    borderColor: "#2E6FEC40",
+                datasets: this.props.dataSets.map(dataSet => ({
+                    label: dataSet.name,
+                    data: dataSet.dataPoints,
+                    pointBackgroundColor: dataSet.pointColor,
+                    borderColor: dataSet.lineColor,
                     lineTension: 0,
                     fill: false
-                }]
+                }))
             }
         });
         
@@ -131,15 +155,19 @@ export class CumulativeSuccessChart extends React.PureComponent<Props, State> {
     }
     
     componentDidUpdate(prevProps: Props) {
-        const changed = this.props.dataPoints !== prevProps.dataPoints;
+        const changed = this.props.dataSets !== prevProps.dataSets;
         if (changed && this.chart) {
             this.chart.options.scales?.xAxes?.forEach(axis => {
-                axis.ticks!.max = Math.max(...this.props.dataPoints.map(x => x.completions));
+                axis.ticks!.max = Math.max(...flatten(this.props.dataSets.map(x => x.dataPoints.map(y => y.x))));
             });
             
-            this.chart.data.datasets![0].data = this.props.dataPoints.map(p => ({
-                x: p.completions,
-                y: p.probability
+            this.chart.data.datasets = this.props.dataSets.map(dataSet => ({
+                label: dataSet.name,
+                data: dataSet.dataPoints,
+                pointBackgroundColor: dataSet.pointColor,
+                borderColor: dataSet.lineColor,
+                lineTension: 0,
+                fill: false
             }));
             this.chart.update();
         }

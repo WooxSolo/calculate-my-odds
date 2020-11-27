@@ -1,0 +1,21 @@
+
+.context-menu-component {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    box-shadow: 0 0.3em 1em #000000A0;
+    border-radius: 0.4em;
+    padding: 0.5em 0;
+    background-color: #434346;
+    border: 1px solid #666666;
+    z-index: 200;
+    
+    .context-menu-item {
+        padding: 0.3em 0.5em;
+        cursor: pointer;
+        
+        &:hover {
+            background-color: #5b5b5d;
+        }
+    }
+}

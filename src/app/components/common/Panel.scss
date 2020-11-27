@@ -1,0 +1,24 @@
+
+.panel-component {
+    padding: 0.8em;
+    border: 1px solid #FFFFFF40;
+    border-radius: 0.4em;
+    position: relative;
+    
+    .panel-title {
+        position: absolute;
+        top: 0;
+        left: 1em;
+        transform: translateY(-50%);
+        padding: 0 0.5em;
+    }
+    
+    .panel-close-container {
+        position: absolute;
+        top: 0;
+        right: 1em;
+        transform: translateY(-50%);
+        padding: 0 0.5em;
+        cursor: pointer;
+    }
+}

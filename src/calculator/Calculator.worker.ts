@@ -1,5 +1,6 @@
 import { CalculationMainEventTypes, FinishedCalculationEvent, ReceivedResultCalculationEvent, ReceivedIterationsAtProbabilityCalculationEvent, ReceivedProbabilityAtIterationsCalculationEvent } from "../shared/interfaces/calculator/CalculationMainEvents";
 import { CalculationWorkerEvent, CalculationWorkerEventType } from "../shared/interfaces/calculator/CalculationWorkerEvents";
+import { ProbabilityType } from "../shared/interfaces/Probability";
 import { Calculator } from "./calculators/Calculator";
 
 const ctx: Worker = self as any;
@@ -36,7 +37,7 @@ ctx.onmessage = (event: MessageEvent<CalculationWorkerEvent>) => {
     }
     else if (data.type === CalculationWorkerEventType.RequestDataResult) {
         if (currentCalculator) {
-            const result = currentCalculator.getResult(data.maxDataPoints, data.minimumDistance);
+            const result = currentCalculator.getResult(data.maxDataPoints, data.threshold);
             const message: ReceivedResultCalculationEvent = {
                 type: CalculationMainEventTypes.ReceivedResult,
                 requestId: data.requestId,
@@ -48,10 +49,11 @@ ctx.onmessage = (event: MessageEvent<CalculationWorkerEvent>) => {
     else if (data.type === CalculationWorkerEventType.RequestProbabilityAtIterations) {
         if (currentCalculator) {
             currentCalculator.updateProbabilityAtIterationsTarget(data.iterations);
-            const result = currentCalculator.getProbabilityAtIterations();
             const message: ReceivedProbabilityAtIterationsCalculationEvent = {
                 type: CalculationMainEventTypes.ReceivedProbabilityAtIterations,
-                probability: result
+                successProbability: currentCalculator.getProbabilityAtIterations(ProbabilityType.Success),
+                failureProbability: currentCalculator.getProbabilityAtIterations(ProbabilityType.Failure),
+                drawProbability: currentCalculator.getProbabilityAtIterations(ProbabilityType.Draw),
             };
             ctx.postMessage(message);
         }
@@ -59,10 +61,11 @@ ctx.onmessage = (event: MessageEvent<CalculationWorkerEvent>) => {
     else if (data.type === CalculationWorkerEventType.RequestIterationsAtProbability) {
         if (currentCalculator) {
             currentCalculator.updateIterationsAtProbabilityTarget(data.probability);
-            const result = currentCalculator.getIterationsAtProbability();
             const message: ReceivedIterationsAtProbabilityCalculationEvent = {
                 type: CalculationMainEventTypes.ReceivedIterationsAtProbability,
-                iterations: result
+                successIterations: currentCalculator.getIterationsAtProbability(ProbabilityType.Success),
+                failureIterations: currentCalculator.getIterationsAtProbability(ProbabilityType.Failure),
+                drawIterations: currentCalculator.getIterationsAtProbability(ProbabilityType.Draw),
             };
             ctx.postMessage(message);
         }

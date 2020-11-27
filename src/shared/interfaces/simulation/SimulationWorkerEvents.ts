@@ -38,7 +38,7 @@ export interface RequestDataResultSimulationEvent {
     type: SimulationWorkerEventType.RequestDataResult,
     requestId: number,
     maxDataPoints: number,
-    minimumDistance?: number
+    threshold?: number
 }
 
 export interface RequestProbabilityAtIterations {

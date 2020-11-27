@@ -12,4 +12,10 @@
         flex-basis: 0;
         flex-grow: 1;
     }
+    
+    .progress-content-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 }

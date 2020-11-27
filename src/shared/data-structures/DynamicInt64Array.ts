@@ -13,16 +13,33 @@ export class DynamicInt64Array {
         return this.count;
     }
     
+    private resize(newSize: number) {
+        const newData = new BigInt64Array(newSize);
+        for (let i = 0; i < Math.min(newSize, this.data.length); i++) {
+            newData[i] = this.data[i];
+        }
+        this.data = newData;
+    }
+    
     push(value: bigint) {
         this.count++;
         if (this.count >= this.data.length) {
-            const newData = new BigInt64Array(this.data.length * 2);
-            for (let i = 0; i < this.data.length; i++) {
-                newData[i] = this.data[i];
-            }
-            this.data = newData;
+            this.resize(this.data.length * 2);
         }
         this.data[this.count - 1] = value;
+    }
+    
+    ensureMinimumSize(size: number) {
+        if (this.count >= size) {
+            return;
+        }
+        
+        let mul = 1;
+        while (size > this.data.length * mul) {
+            mul *= 2;
+        }
+        this.resize(this.data.length * mul);
+        this.count = size;
     }
     
     get(index: number) {

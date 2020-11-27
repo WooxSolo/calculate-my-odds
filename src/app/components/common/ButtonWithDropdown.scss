@@ -1,0 +1,21 @@
+
+.button-with-dropdown-component {
+    display: flex;
+    
+    .dropdown-container {
+        position: relative;
+    }
+    
+    .main-button {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        padding-right: 0.6em;
+    }
+    
+    .dropdown-button {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        padding-left: 0.6em;
+        padding-right: 0.6em;
+    }
+}

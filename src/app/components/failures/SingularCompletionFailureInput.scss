@@ -1,0 +1,34 @@
+
+.probability-failure-input-component {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    
+    .failure-probability-item {
+        flex-grow: 1;
+    }
+    
+    .failure-comparison-operator {
+        width: 5em;
+    }
+    
+    .failure-target-container {
+        width: 5em;
+    }
+    
+    .failure-button-container {
+        
+    }
+    
+    > * {
+        padding: 0.3em;
+        
+        &:first-child {
+            padding-left: 0;
+        }
+        
+        &:last-child {
+            padding-right: 0;
+        }
+    }
+}

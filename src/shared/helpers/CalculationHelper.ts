@@ -1,7 +1,6 @@
-import { getTruncatedArrayItems } from "../../simulator/helpers/ArrayHelpers";
 import { DynamicFloat64Array } from "../data-structures/DynamicFloat64Array";
 
-export function getTruncatedDataDynamic(array: DynamicFloat64Array, maxDataPoints: number, minimumDistance?: number) {
+export function getTruncatedDataDynamic(array: DynamicFloat64Array, maxDataPoints: number, threshold?: number) {
     if (maxDataPoints <= 0) {
         return [];
     }
@@ -11,22 +10,11 @@ export function getTruncatedDataDynamic(array: DynamicFloat64Array, maxDataPoint
     }
     
     let highIndex = array.length - 1;
-    if (minimumDistance !== undefined) {
-        while (highIndex > 1 && array.get(highIndex - 1) >= 1 - minimumDistance) {
+    if (threshold !== undefined) {
+        while (highIndex > 1 && array.get(highIndex - 1) >= threshold) {
             highIndex--;
         }
     }
     
     return array.getTruncatedArray(maxDataPoints, highIndex);
-}
-
-export function getTruncatedData(array: Float64Array, maxDataPoints: number, minimumDistance?: number) {
-    let highIndex = array.length - 1;
-    if (minimumDistance !== undefined) {
-        while (highIndex > 1 && array[highIndex - 1] >= 1 - minimumDistance) {
-            highIndex--;
-        }
-    }
-    
-    return getTruncatedArrayItems(array, maxDataPoints, highIndex);
 }

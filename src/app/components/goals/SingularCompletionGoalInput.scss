@@ -3,8 +3,6 @@
     display: flex;
     align-items: center;
     width: 100%;
-    margin-left: -0.3em;
-    margin-right: -0.3em;
     
     .goal-probability-item {
         flex-grow: 1;
@@ -24,5 +22,13 @@
     
     > * {
         padding: 0.3em;
+        
+        &:first-child {
+            padding-left: 0;
+        }
+        
+        &:last-child {
+            padding-right: 0;
+        }
     }
 }

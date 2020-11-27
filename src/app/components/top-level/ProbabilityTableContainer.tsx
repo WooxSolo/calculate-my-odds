@@ -1,24 +1,22 @@
-import { faList, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { template } from "lodash";
 import React from "react";
-import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
-import { Validator } from "../data-structures/Validator";
-import { nextUniqueId } from "../helper/IdHelpers";
-import { Button } from "./common/Button";
-import { ButtonContainer } from "./common/ButtonContainer";
-import { ButtonIcon } from "./common/ButtonIcon";
-import { Editable } from "./common/Editable";
-import { ErrorDisplay } from "./common/ErrorDisplay";
-import { Input } from "./common/Input";
-import { IntegerInput } from "./common/IntegerInput";
-import { SpaceContainer } from "./common/SpaceContainer";
-import { TooltipContainer, TooltipSide } from "./info/TooltipContainer";
-import { ProbabilityInput } from "./inputs/ProbabilityInput";
+import { faList, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { ProbabilityItem, ProbabilityTable } from "../../../shared/interfaces/Probability";
+import { NameChange } from "../../interfaces/NamingInterfaces";
+import { Validator } from "../../data-structures/Validator";
+import { nextUniqueId } from "../../helper/IdHelpers";
+import { SpaceContainer } from "../common/SpaceContainer";
+import { ProbabilityInput } from "../inputs/ProbabilityInput";
+import { ErrorDisplay } from "../common/ErrorDisplay";
+import { ButtonContainer } from "../common/ButtonContainer";
+import { Button } from "../common/Button";
+import { Input } from "../common/Input";
+import { TooltipContainer, TooltipSide } from "../info/TooltipContainer";
+import { IntegerInput } from "../common/IntegerInput";
 
 interface Props {
     table: ProbabilityTable,
     nextDefaultOptionName: () => string,
-    onChange?: (table: ProbabilityTable) => void,
+    onChange?: (table: ProbabilityTable, nameChange?: NameChange) => void,
     requestTabFocus: () => void,
     validator: Validator
 }
@@ -57,6 +55,9 @@ export class ProbabilityTableContainer extends React.PureComponent<Props, State>
         this.props.onChange?.({
             ...this.props.table,
             items: newItems
+        }, {
+            oldName: this.props.table.items[index].name,
+            newName: newItems[index].name
         });
     }
     

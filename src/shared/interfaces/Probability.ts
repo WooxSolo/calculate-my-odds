@@ -12,3 +12,9 @@ export interface ProbabilityItem {
     probability?: number,
     probabilityDisplay: string
 }
+
+export enum ProbabilityType {
+    Success,
+    Failure,
+    Draw
+}

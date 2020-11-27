@@ -8,15 +8,23 @@ export interface SimulationDataPoint {
     completions: number
 }
 
+export interface SimulationObjectiveResult {
+    totalAttempts: number,
+    successfulRounds: number,
+    iterationsAtProbability?: number,
+    probabilityAtIterations: number,
+    dataPoints: SimulationDataPoint[]
+}
+
 export interface DataSimulationResult {
     type: SimulationResultType.DataResult,
-    iterations: number,
-    attempts: number,
-    successfulIterations: number,
-    dataPoints: SimulationDataPoint[],
-    iterationsAtProbability: number,
-    probabilityAtIterations: number,
-    highestIteration: number
+    totalRounds: number,
+    successResult: SimulationObjectiveResult,
+    failureResult: SimulationObjectiveResult,
+    drawResult: SimulationObjectiveResult,
+    highestIteration: number,
+    unknownResults: number,
+    maxIterations: number
 }
 
 export type SimulationResult = DataSimulationResult

@@ -13,14 +13,18 @@ export class DynamicFloat64Array {
         return this.count;
     }
     
+    private resize(newSize: number) {
+        const newData = new Float64Array(newSize);
+        for (let i = 0; i < Math.min(this.data.length, newSize); i++) {
+            newData[i] = this.data[i];
+        }
+        this.data = newData;
+    }
+    
     push(value: number) {
         this.count++;
         if (this.count >= this.data.length) {
-            const newData = new Float64Array(this.data.length * 2);
-            for (let i = 0; i < this.data.length; i++) {
-                newData[i] = this.data[i];
-            }
-            this.data = newData;
+            this.resize(this.data.length * 2);
         }
         this.data[this.count - 1] = value;
     }

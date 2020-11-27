@@ -14,12 +14,16 @@ export interface ReceivedResultSimulationEvent {
 
 export interface ReceivedProbabilityAtIterationsEvent {
     type: SimulationMainEventTypes.ReceivedProbabilityAtIterations,
-    probability: number
+    successProbability: number,
+    failureProbability: number,
+    drawProbability: number
 }
 
 export interface ReceivedIterationsAtProbabilityEvent {
     type: SimulationMainEventTypes.ReceivedIterationsAtProbability,
-    iterations: number
+    successIterations?: number,
+    failureIterations?: number,
+    drawIterations?: number
 }
 
 export type SimulationMainEvent = ReceivedResultSimulationEvent

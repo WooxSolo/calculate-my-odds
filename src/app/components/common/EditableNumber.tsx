@@ -5,9 +5,10 @@ import { Editable } from "./Editable";
 type Props = {
     initialValue?: number,
     append?: string,
+    onEdited?: () => void,
     onChange?: (value: number) => void,
-    min?: number,
-    max?: number
+    validate?: (value: number) => boolean,
+    validationCallback?: (isValid: boolean) => void
 }
 
 interface State {
@@ -21,21 +22,27 @@ export class EditableNumber extends React.PureComponent<Props, State> {
         this.state = {
             showError: false
         };
+        
+        if (this.props.initialValue !== undefined && this.props.validationCallback) {
+            this.props.validationCallback(this.props.validate?.(this.props.initialValue) ?? true);
+        }
     }
     
     private parseValue(valueString: string) {
         const value = parseAbbreviatedNumber(valueString);
         if (value === undefined) {
+            this.props.validationCallback?.(false);
             return undefined;
         }
         
-        if (this.props.max !== undefined && value > this.props.max) {
-            return undefined;
-        }
-        if (this.props.min !== undefined && value < this.props.min) {
-            return undefined;
+        if (this.props.validate) {
+            if (!this.props.validate(value)) {
+                this.props.validationCallback?.(false);
+                return undefined;
+            }
         }
         
+        this.props.validationCallback?.(true);
         return value;
     }
     
@@ -50,7 +57,7 @@ export class EditableNumber extends React.PureComponent<Props, State> {
                     this.setState({
                         showError: value === undefined
                     });
-                    console.log("parse", value, valueString);
+                    this.props.onEdited?.();
                     if (value !== undefined) {
                         this.props.onChange?.(value);
                     }

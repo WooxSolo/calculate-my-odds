@@ -15,12 +15,16 @@ export interface ReceivedResultCalculationEvent {
 
 export interface ReceivedProbabilityAtIterationsCalculationEvent {
     type: CalculationMainEventTypes.ReceivedProbabilityAtIterations,
-    probability: number
+    successProbability: number,
+    failureProbability: number,
+    drawProbability: number
 }
 
 export interface ReceivedIterationsAtProbabilityCalculationEvent {
     type: CalculationMainEventTypes.ReceivedIterationsAtProbability,
-    iterations?: number
+    successIterations?: number,
+    failureIterations?: number,
+    drawIterations?: number,
 }
 
 export interface FinishedCalculationEvent {

@@ -78,7 +78,9 @@ export class Tabs extends React.PureComponent<Props, State> {
                     onWheel={e => {
                         const direction = e.deltaY < 0 ? -1 : e.deltaY > 0 ? 1 : 0;
                         this.headerContainerRef.current!.scrollLeft += direction * 20;
-                        e.preventDefault();
+                        if (e.cancelable) {
+                            e.preventDefault();
+                        }
                     }}
                 >
                     {this.props.tabs.map((tab, index) => (
@@ -90,7 +92,7 @@ export class Tabs extends React.PureComponent<Props, State> {
                             <div className="tab-header-name">
                                 {tab.name}
                             </div>
-                            {this.props.tabs.length >= 2 &&
+                            {this.props.tabs.length >= 2 && this.props.onTabRemovalRequest &&
                             <div className="tab-header-actions">
                                 <div
                                     className="tab-header-remove"
@@ -105,12 +107,14 @@ export class Tabs extends React.PureComponent<Props, State> {
                             }
                         </div>
                     ))}
+                    {this.props.onRequestNewTab &&
                     <div
                         className="tab-header"
                         onClick={() => this.props.onRequestNewTab?.()}
                     >
                         <FontAwesomeIcon icon={faPlus} className="new-tab-icon" />
                     </div>
+                    }
                 </div>
                 <div className="tab-content-container">
                     {this.props.tabs.map((tab, index) => (

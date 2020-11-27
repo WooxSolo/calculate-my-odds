@@ -1,14 +1,15 @@
 import "./ProbabilityInputContainer.scss";
 import React from "react";
-import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
-import { nextUniqueId } from "../helper/IdHelpers";
-import { SpaceContainer } from "./common/SpaceContainer";
 import { ProbabilityTableContainer } from "./ProbabilityTableContainer";
-import { Tabs } from "./common/Tabs";
-import { Validator } from "../data-structures/Validator";
+import { ProbabilityItem, ProbabilityTable } from "../../../shared/interfaces/Probability";
+import { NameChange } from "../../interfaces/NamingInterfaces";
+import { Validator } from "../../data-structures/Validator";
+import { nextUniqueId } from "../../helper/IdHelpers";
+import { SpaceContainer } from "../common/SpaceContainer";
+import { Tabs } from "../common/Tabs";
 
 interface Props {
-    onChange: (tables: ProbabilityTable[]) => void,
+    onChange: (tables: ProbabilityTable[], nameChange?: NameChange) => void,
     validator: Validator
 }
 
@@ -87,13 +88,13 @@ export class ProbabilityInputContainer extends React.PureComponent<Props, State>
                                     key={table.id}
                                     nextDefaultOptionName={this.nextDefaultOptionName}
                                     table={table}
-                                    onChange={table => {
+                                    onChange={(table, nameChange) => {
                                         const newTables = [...this.state.tables];
                                         newTables[index] = table;
                                         this.setState({
                                             tables: newTables
                                         });
-                                        this.props.onChange?.(newTables);
+                                        this.props.onChange?.(newTables, nameChange);
                                     }}
                                     requestTabFocus={() => this.setState({
                                         selectedTableIndex: index

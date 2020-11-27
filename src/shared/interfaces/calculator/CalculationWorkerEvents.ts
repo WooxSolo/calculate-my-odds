@@ -33,15 +33,15 @@ export interface RequestDataResultCalculationEvent {
     type: CalculationWorkerEventType.RequestDataResult,
     requestId: number,
     maxDataPoints: number,
-    minimumDistance?: number
+    threshold?: number
 }
 
-export interface RequestProbabilityAtIterations {
+export interface RequestCalculatorProbabilityAtIterations {
     type: CalculationWorkerEventType.RequestProbabilityAtIterations,
     iterations: number
 }
 
-export interface RequestIterationsAtProbability {
+export interface RequestCalculatorIterationsAtProbability {
     type: CalculationWorkerEventType.RequestIterationsAtProbability,
     probability: number
 }
@@ -51,5 +51,5 @@ export type CalculationWorkerEvent = StartCalculationEvent
     | ResumeCalculationEvent
     | CancelCalculationEvent
     | RequestDataResultCalculationEvent
-    | RequestProbabilityAtIterations
-    | RequestIterationsAtProbability
+    | RequestCalculatorProbabilityAtIterations
+    | RequestCalculatorIterationsAtProbability

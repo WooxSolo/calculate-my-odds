@@ -1,11 +1,14 @@
 import "./AppContainer.scss";
 import React from "react";
-import { AnyProbabilityGoal } from "../../shared/interfaces/Goals";
-import { ProbabilityItem, ProbabilityTable } from "../../shared/interfaces/Probability";
-import { GoalInputContainer } from "./GoalInputContainer";
-import { ProbabilityInputContainer } from "./ProbabilityInputContainer";
-import { ResultDisplayContainer } from "./ResultDisplayContainer";
+import { FullCompletionGoal, ProbabilityGoalType } from "../../shared/interfaces/Goals";
+import { ProbabilityTable } from "../../shared/interfaces/Probability";
+import { ResultDisplayContainer } from "./top-level/ResultDisplayContainer";
 import { Validator } from "../data-structures/Validator";
+import { nextUniqueId } from "../helper/IdHelpers";
+import { FullCompletionFailure, ProbabilityFailureType } from "../../shared/interfaces/Failures";
+import { NameChange } from "../interfaces/NamingInterfaces";
+import { ObjectivesInputContainer } from "./top-level/ObjectivesInputContainer";
+import { ProbabilityInputContainer } from "./top-level/ProbabilityInputContainer";
 
 interface Props {
     
@@ -13,7 +16,9 @@ interface Props {
 
 interface State {
     tables: ProbabilityTable[],
-    goals: AnyProbabilityGoal[],
+    rootGoal: FullCompletionGoal,
+    rootFailure: FullCompletionFailure,
+    lastNameChange?: NameChange,
     validator: Validator
 }
 
@@ -23,7 +28,16 @@ export class AppContainer extends React.PureComponent<Props, State> {
         
         this.state = {
             tables: [],
-            goals: [],
+            rootGoal: {
+                type: ProbabilityGoalType.FullCompletionGoal,
+                id: nextUniqueId().toString(),
+                goals: []
+            },
+            rootFailure: {
+                type: ProbabilityFailureType.FullCompletionFailure,
+                id: nextUniqueId().toString(),
+                failures: []
+            },
             validator: new Validator()
         };
     }
@@ -34,26 +48,32 @@ export class AppContainer extends React.PureComponent<Props, State> {
                 <div className="app-input-container">
                     <div className="app-probability-input-container">
                         <ProbabilityInputContainer
-                            onChange={tables => this.setState({
-                                tables: tables
+                            onChange={(tables, nameChange) => this.setState({
+                                tables: tables,
+                                lastNameChange: nameChange
                             })}
                             validator={this.state.validator}
                         />
                     </div>
-                    <div className="app-goal-input-container">
-                        <GoalInputContainer
+                    <div className="app-objectives-input-container">
+                        <ObjectivesInputContainer
                             tables={this.state.tables}
-                            onChange={goals => this.setState({
-                                goals: goals
+                            onGoalsChange={rootGoal => this.setState({
+                                rootGoal: rootGoal
+                            })}
+                            onFailuresChange={rootFailure => this.setState({
+                                rootFailure: rootFailure
                             })}
                             validator={this.state.validator}
+                            nameChange={this.state.lastNameChange}
                         />
                     </div>
                 </div>
                 <div className="app-result-container">
                     <ResultDisplayContainer
                         tables={this.state.tables}
-                        goals={this.state.goals}
+                        rootGoal={this.state.rootGoal}
+                        rootFailure={this.state.rootFailure}
                         validator={this.state.validator}
                     />
                 </div>
