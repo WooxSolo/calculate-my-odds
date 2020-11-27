@@ -4,6 +4,8 @@ Work in progress.
 
 ## TODO-list
 
+* Add option to enter quantity for items on tables.
+* Add option to enter values for items and have conditions based on total value.
 * Add support for conditional rolls on tables.
 * Add more options for the goals (e.g. conditions based on iterations).
 * Add a "Calculate average" calculation method.
