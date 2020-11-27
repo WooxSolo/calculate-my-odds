@@ -11,6 +11,8 @@ import { CalculationResultDisplay } from "../result-displays/CalculationResultDi
 import { SpaceContainer } from "../common/SpaceContainer";
 import { Validator } from "../../data-structures/Validator";
 import { FullCompletionFailure } from "../../../shared/interfaces/Failures";
+import { Input } from "../common/Input";
+import { IntegerInput } from "../common/IntegerInput";
 
 interface Props {
     tables: ProbabilityTable[],
@@ -21,7 +23,8 @@ interface Props {
 
 interface State {
     calculationMethod: CalculationMethod,
-    hasStarted: boolean
+    hasStarted: boolean,
+    simulationRounds?: number
 }
 
 export class ResultDisplayContainer extends React.PureComponent<Props, State> {
@@ -78,6 +81,7 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                         rootGoal={this.props.rootGoal}
                         rootFailure={this.props.rootFailure}
                         onRequestNewCalculation={() => this.stop()}
+                        simulationRounds={this.state.simulationRounds}
                     />
                     }
                     
@@ -105,6 +109,19 @@ export class ResultDisplayContainer extends React.PureComponent<Props, State> {
                             width="14em"
                         />
                     </div>
+                    
+                    {this.state.calculationMethod.type === CalculationMethodType.Simulation &&
+                    <div>
+                        <label>Simulation rounds</label>
+                        <IntegerInput
+                            value={this.state.simulationRounds}
+                            onChange={x => this.setState({ simulationRounds: x })}
+                            placeholder="Unlimited"
+                            width="14em"
+                        />
+                    </div>
+                    }
+                    
                     <div className="result-display-button-container">
                         <Button
                             content={this.getStartButtonText()}

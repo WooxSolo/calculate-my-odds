@@ -1,6 +1,6 @@
 import { Simulator } from "./simulators/Simulator";
 import { SimulationWorkerEvent, SimulationWorkerEventType } from "../shared/interfaces/simulation/SimulationWorkerEvents";
-import { ReceivedIterationsAtProbabilityEvent, ReceivedProbabilityAtIterationsEvent, ReceivedResultSimulationEvent, SimulationMainEventTypes } from "../shared/interfaces/simulation/SimulationMainEvents";
+import { ReceivedIterationsAtProbabilityEvent, ReceivedProbabilityAtIterationsEvent, ReceivedResultSimulationEvent, ReceivedSimulationFinishedEvent, SimulationMainEventTypes } from "../shared/interfaces/simulation/SimulationMainEvents";
 import { ProbabilityType } from "../shared/interfaces/Probability";
 
 const ctx: Worker = self as any;
@@ -16,7 +16,14 @@ ctx.onmessage = (event: MessageEvent<SimulationWorkerEvent>) => {
         
         currentSimulator = new Simulator(data.simulation,
             data.initialIterationsAtProbability,
-            data.initialProbabilityAtIterations);
+            data.initialProbabilityAtIterations,
+            data.simulationRounds,
+            () => {
+                const message: ReceivedSimulationFinishedEvent = {
+                    type: SimulationMainEventTypes.FinishedSimulation
+                };
+                ctx.postMessage(message);
+            });
         currentSimulator.start();
     }
     else if (data.type === SimulationWorkerEventType.PauseSimulation) {

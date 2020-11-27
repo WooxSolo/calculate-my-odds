@@ -13,7 +13,7 @@ import { ProbabilityType } from "../../shared/interfaces/Probability";
 interface SimulationResult {
     totalAttempts: number,
     successfulRounds: number,
-    result: DynamicInt64Array, // TODO: Limit size to maybe 10m to prevent too much memory allocation
+    result: DynamicInt64Array,
 }
 
 const MAX_ITERATIONS = 10 * 1000 * 1000;
@@ -28,9 +28,11 @@ export class Simulator {
     private unknownResults: number;
     private targetIterationsAtProbability: number;
     private targetProbabilityAtIterations: number;
+    private simulationRounds?: number;
+    private onFinish?: () => void;
     
     constructor(simulation: Simulation, iterationsAtProbability: number,
-            probabilityAtIterations: number) {
+            probabilityAtIterations: number, simulationRounds?: number, onFinish?: () => void) {
         this.isRunning = false;
         this.simulation = simulation;
         this.totalRounds = 0;
@@ -52,10 +54,12 @@ export class Simulator {
         this.unknownResults = 0;
         this.targetIterationsAtProbability = iterationsAtProbability;
         this.targetProbabilityAtIterations = probabilityAtIterations;
+        this.simulationRounds = simulationRounds;
+        this.onFinish = onFinish;
     }
     
     private incrementResult(result: SimulationResult, iterations: number) {
-        result.result.ensureMinimumSize(iterations);
+        result.result.ensureMinimumSize(iterations + 1);
         for (let i = 0; i < iterations; i++) {
             result.result.set(i, result.result.get(i) + BigInt(1));
         }
@@ -132,6 +136,10 @@ export class Simulator {
         
         runWorkerLoop(() => {
             this.simulateRound(targetItems.size, rootSimGoal, rootSimFailure, simTables);
+            if (this.totalRounds === this.simulationRounds) {
+                this.onFinish?.();
+                this.isRunning = false;
+            }
             return this.isRunning;
         });
     }

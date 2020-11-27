@@ -3,7 +3,8 @@ import { SimulationResult } from "./SimulationResult";
 export enum SimulationMainEventTypes {
     ReceivedResult = "RECEIVED_RESULT",
     ReceivedProbabilityAtIterations = "RECEIVED_PROBABILITY_AT_ITERATIONS",
-    ReceivedIterationsAtProbability = "RECEIVED_ITERATIONS_AT_PROBABILITY"
+    ReceivedIterationsAtProbability = "RECEIVED_ITERATIONS_AT_PROBABILITY",
+    FinishedSimulation = "FINISHED_SIMULATION"
 }
 
 export interface ReceivedResultSimulationEvent {
@@ -26,6 +27,11 @@ export interface ReceivedIterationsAtProbabilityEvent {
     drawIterations?: number
 }
 
+export interface ReceivedSimulationFinishedEvent {
+    type: SimulationMainEventTypes.FinishedSimulation
+}
+
 export type SimulationMainEvent = ReceivedResultSimulationEvent
     | ReceivedProbabilityAtIterationsEvent
     | ReceivedIterationsAtProbabilityEvent
+    | ReceivedSimulationFinishedEvent

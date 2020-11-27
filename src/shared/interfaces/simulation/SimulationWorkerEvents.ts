@@ -15,7 +15,8 @@ export interface StartSimulationEvent {
     type: SimulationWorkerEventType.StartSimulation,
     simulation: Simulation,
     initialProbabilityAtIterations: number,
-    initialIterationsAtProbability: number
+    initialIterationsAtProbability: number,
+    simulationRounds?: number
 }
 
 export interface PauseSimulationEvent {

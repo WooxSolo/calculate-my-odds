@@ -4,7 +4,6 @@ Work in progress.
 
 ## TODO-list
 
-* Add option to run a maximum amount of simulation rounds.
 * Add support for conditional rolls on tables.
 * Add more options for the goals (e.g. conditions based on iterations).
 * Add a "Calculate average" calculation method.

@@ -8,7 +8,8 @@ import { nextUniqueId } from "../helper/IdHelpers";
 export interface SimulatorEvents {
     onReceivedResult: (result: DataSimulationResult) => void,
     onReceivedIterationsAtProbability: (successIterations?: number, failureIterations?: number, drawIterations?: number) => void,
-    onReceivedProbabilityAtIterations: (successProbability: number, failureProbability: number, drawProbability: number) => void
+    onReceivedProbabilityAtIterations: (successProbability: number, failureProbability: number, drawProbability: number) => void,
+    onFinishedSimulation: () => void
 }
 
 export class SimulatorHandler {
@@ -37,18 +38,22 @@ export class SimulatorHandler {
             else if (data.type === SimulationMainEventTypes.ReceivedProbabilityAtIterations) {
                 this.events.onReceivedProbabilityAtIterations(data.successProbability, data.failureProbability, data.drawProbability);
             }
+            else if (data.type === SimulationMainEventTypes.FinishedSimulation) {
+                this.events.onFinishedSimulation();
+            }
         };
     }
     
     public startSimulation(simulation: Simulation, initialIterationsAtProbability: number,
-            initialProbabilityAtIterations: number) {
+            initialProbabilityAtIterations: number, simulationRounds?: number) {
         const worker = this.simulationWorker;
         
         const startMessage: StartSimulationEvent = {
             type: SimulationWorkerEventType.StartSimulation,
             simulation: simulation,
             initialIterationsAtProbability: initialIterationsAtProbability,
-            initialProbabilityAtIterations: initialProbabilityAtIterations
+            initialProbabilityAtIterations: initialProbabilityAtIterations,
+            simulationRounds: simulationRounds
         };
         worker.postMessage(startMessage);
     }

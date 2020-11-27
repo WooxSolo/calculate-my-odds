@@ -22,7 +22,8 @@ interface Props {
     tables: ProbabilityTable[],
     rootGoal: FullCompletionGoal,
     rootFailure: FullCompletionFailure,
-    onRequestNewCalculation?: () => void
+    onRequestNewCalculation?: () => void,
+    simulationRounds?: number
 }
 
 interface State {
@@ -80,6 +81,9 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
                         probabilityAtIterations: drawProbability
                     }
                 }
+            }),
+            onFinishedSimulation: () => this.setState({
+                isRunning: false
             })
         });
         
@@ -104,7 +108,7 @@ export class SimulationResultDisplay extends React.PureComponent<Props, State> {
             tables: this.props.tables,
             rootGoal: this.props.rootGoal,
             rootFailure: this.props.rootFailure
-        }, initialIterationsAtProbability, initialProbabilityAtIterations);
+        }, initialIterationsAtProbability, initialProbabilityAtIterations, this.props.simulationRounds);
         
         this.setState({
             isRunning: true

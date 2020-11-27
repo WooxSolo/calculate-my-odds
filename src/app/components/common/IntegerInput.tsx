@@ -11,7 +11,8 @@ interface Props {
     markError?: boolean,
     onlyMarkErrorOnBlur?: boolean,
     onFocus?: () => void,
-    onBlur?: () => void
+    onBlur?: () => void,
+    width?: string | number
 }
 
 interface State {
@@ -49,6 +50,9 @@ export class IntegerInput extends React.PureComponent<Props, State> {
                 onlyMarkErrorOnBlur={this.props.onlyMarkErrorOnBlur}
                 onFocus={this.props.onFocus}
                 onBlur={this.props.onBlur}
+                style={{
+                    width: this.props.width
+                }}
             />
         );
     }
